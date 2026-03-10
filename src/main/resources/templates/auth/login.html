@@ -56,49 +56,44 @@
 
 
 		<!-- FORM -->
-		<form th:action="@{/login}" th:object="${user}" method="post">
+		<div th:if="${param.error}" class="alert alert-danger">
+			Tên người dùng hoặc mật khẩu không hợp lệ.
+		</div>
 
-			
+		<div th:if="${param.logout}" class="alert alert-success">
+			Bạn đã đăng xuất thành công.
+		</div>
+
+		<div th:if="${param.expire}" class="alert alert-warning">
+			Phiên đăng nhập của bạn đã hết hạn.
+		</div>
+		<form th:action="@{/login}" method="post">
+
 			<div class="mb-3">
-
-				<label for="email" class="form-label">
+				<label class="form-label">
 					<i class="bi bi-envelope me-1"></i>Email
 				</label>
 
-				<input type="text" th:field="*{email}" class="form-control"
-					th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
-				<span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback" />
-
+				<input type="text" name="username" class="form-control" required>
 			</div>
 
-
 			<div class="mb-3">
-
 				<label class="form-label">
 					<i class="bi bi-lock me-1"></i>Mật khẩu
 				</label>
 
 				<div class="input-group">
-
-					<input type="password" th:field="*{password}" id="password" class="form-control" 
-						th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
+					<input type="password" name="password" id="password" class="form-control" required>
 
 					<span class="input-group-text" style="cursor:pointer" onclick="togglePasswordLogin()">
-
 						<i id="toggleIcon" class="bi bi-eye"></i>
-
 					</span>
-				    <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback" />
 				</div>
-
 			</div>
 
-
 			<button type="submit" class="btn btn-register text-white">
-
 				<i class="bi bi-box-arrow-in-right me-2"></i>
 				Đăng nhập
-
 			</button>
 
 		</form>
