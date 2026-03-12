@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<div th:fragment="modals">
+<!-- Create Post Modal -->
+	<div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel"
+		aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="createPostModalLabel">Tạo bài viết</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<form th:action="@{/post/create}" method="post" enctype="multipart/form-data">
+					<div class="modal-body">
+						<div class="mb-3">
+							<textarea name="content" class="form-control" rows="4" placeholder="Bạn đang nghĩ gì?"
+								required></textarea>
+						</div>
+
+						<div class="mb-3">
+							<input type="file" name="image" class="form-control" accept="image/*"
+								onchange="previewImage(this)">
+						</div>
+
+						<div class="mb-3 text-center">
+							<img id="imagePreview" src="" alt="Preview"
+								style="max-width: 100%; display: none; border-radius: 8px;">
+						</div>
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+						<button type="submit" class="btn btn-primary">Đăng</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- Comment Modal -->
+	<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="commentModalLabel">Bình luận</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+					<div id="modal-comment-list"></div>
+				</div>
+
+				<div class="modal-footer">
+					<div class="d-flex w-100 gap-2 align-items-center">
+						<input type="text" id="modal-comment-input" class="form-control"
+							placeholder="Viết bình luận...">
+						<button class="btn btn-primary px-3" onclick="submitModalComment()">Gửi</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Edit Post Modal -->
+	<div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="editPostModalLabel">Sửa bài viết</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+					<textarea id="editPostContent" class="form-control" rows="4"></textarea>
+					<input type="hidden" id="editPostId">
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+					<button type="button" class="btn btn-primary" onclick="submitEditPost()">Lưu</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Change Password Modal -->
+	<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel"
+		aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="changePasswordModalLabel">Đổi mật khẩu</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="mb-3">
+						<label class="form-label">
+							<i class="bi bi-lock me-1"></i>Mật khẩu hiện tại
+						</label>
+						<div class="input-group">
+							<input type="password" id="oldPassword" class="form-control"
+								placeholder="Mật khẩu hiện tại">
+							<span class="input-group-text" style="cursor: pointer;"
+								onclick="toggleChangePassword('oldPassword', this)">
+								<i class="bi bi-eye"></i>
+							</span>
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">
+							<i class="bi bi-lock-fill me-1"></i>Mật khẩu mới
+						</label>
+						<div class="input-group">
+							<input type="password" id="newPassword" class="form-control" placeholder="Mật khẩu mới">
+							<span class="input-group-text" style="cursor: pointer;"
+								onclick="toggleChangePassword('newPassword', this)">
+								<i class="bi bi-eye"></i>
+							</span>
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">
+							<i class="bi bi-shield-lock me-1"></i>Xác nhận mật khẩu
+						</label>
+						<div class="input-group">
+							<input type="password" id="confirmPassword" class="form-control"
+								placeholder="Xác nhận mật khẩu mới">
+							<span class="input-group-text" style="cursor: pointer;"
+								onclick="toggleChangePassword('confirmPassword', this)">
+								<i class="bi bi-eye"></i>
+							</span>
+						</div>
+					</div>
+
+					<div class="text-danger small" id="changePassError"></div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+					<button type="button" class="btn btn-primary" onclick="changePassword()">Lưu</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Chat Modal -->
+	<div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="chatModalLabel">
+						<i class="bi bi-chat-dots me-2"></i>
+						Chat với <span id="chatFriendName"></span>
+					</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body" style="max-height:400px; overflow-y:auto;">
+					<div id="chatMessages" class="d-flex flex-column gap-2">
+						<!-- Tin nhắn sẽ load ở đây -->
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<input type="hidden" id="chatFriendId">
+					<input type="text" id="chatInput" class="form-control" placeholder="Nhập tin nhắn...">
+					<button class="btn btn-primary" onclick="sendMessage()">
+						<i class="bi bi-send"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Edit Profile Modal -->
+	<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel"
+		aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="editProfileModalLabel">Chỉnh sửa trang cá nhân</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<form th:action="@{/profile/update}" method="post" enctype="multipart/form-data">
+					<div class="modal-body">
+						<div class="text-center mb-3">
+							<img id="avatarPreview" th:src="@{/assets/images/default-avatar.jpg}"
+								class="rounded-circle mb-2" style="width:120px; height:120px; object-fit:cover;"
+								alt="Avatar">
+
+							<div>
+								<input type="file" name="avatar" accept="image/*" class="form-control mt-2"
+									onchange="previewAvatar(this)">
+							</div>
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Bio</label>
+							<textarea name="bio" class="form-control" rows="3"
+								placeholder="Viết bio của bạn...">bio</textarea>
+						</div>
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+						<button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- AI Chat Modal -->
+	<div class="modal fade" id="aiChatModal" tabindex="-1" aria-labelledby="aiChatModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="aiChatModalLabel">
+						<i class="bi bi-robot me-2"></i>
+						Trợ lý AI
+					</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body" style="max-height:400px; overflow-y:auto;">
+					<div id="aiChatMessages" class="d-flex flex-column gap-2">
+						<div class="text-muted small text-center">
+							👋 Xin chào! Tôi có thể giúp gì cho bạn?
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<div class="d-flex w-100 gap-2 align-items-center">
+						<input type="text" id="aiChatInput" class="form-control" placeholder="Nhập câu hỏi..."
+							onkeydown="handleAiEnter(event)">
+						<button class="btn btn-primary px-3" onclick="sendAiMessage()">
+							<i class="bi bi-send"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tip Modal -->
+	<div class="modal fade" id="tipModal" tabindex="-1" aria-labelledby="tipModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<form th:action="@{/tip}" method="post">
+					<div class="modal-header">
+						<h5 class="modal-title" id="tipModalLabel">💖 Tip cho admin</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+
+					<div class="modal-body">
+						<!-- QUICK AMOUNT -->
+						<div class="d-flex gap-2 mb-3 flex-wrap">
+							<button type="button" class="btn btn-outline-danger" onclick="setAmount(20000)">20k</button>
+							<button type="button" class="btn btn-outline-danger" onclick="setAmount(50000)">50k</button>
+							<button type="button" class="btn btn-outline-danger"
+								onclick="setAmount(200000)">200k</button>
+							<button type="button" class="btn btn-outline-danger"
+								onclick="setAmount(500000)">500k</button>
+							<button type="button" class="btn btn-outline-danger"
+								onclick="setAmount(1000000000)">1B</button>
+						</div>
+
+						<!-- INPUT AMOUNT -->
+						<div class="mb-3">
+							<label class="form-label">Số tiền (VNĐ)</label>
+							<input type="number" id="tipAmount" name="amount" class="form-control" min="10000"
+								step="1000" required>
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Lời nhắn (tuỳ chọn)</label>
+							<textarea name="note" class="form-control"></textarea>
+						</div>
+					</div>
+
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-danger w-100">💖 Tạo mã QR</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	</div>
+</html>

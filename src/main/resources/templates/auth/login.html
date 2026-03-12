@@ -57,7 +57,7 @@
 
 		<!-- FORM -->
 		<div th:if="${param.error}" class="alert alert-danger">
-			Tên người dùng hoặc mật khẩu không hợp lệ.
+			Sai tài khoản hoặc mật khẩu.
 		</div>
 
 		<div th:if="${param.logout}" class="alert alert-success">
@@ -90,7 +90,12 @@
 					</span>
 				</div>
 			</div>
-
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" id="checkChecked" name="remember-me">
+				<label class="form-check-label" for="checkChecked">
+					Remember me
+				</label>
+			</div>
 			<button type="submit" class="btn btn-register text-white">
 				<i class="bi bi-box-arrow-in-right me-2"></i>
 				Đăng nhập

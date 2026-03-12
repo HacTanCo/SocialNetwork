@@ -1,5 +1,10 @@
 package vn.hactanco.socialnetwork.controller;
 
+import java.util.Collection;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,6 +30,23 @@ import vn.hactanco.socialnetwork.service.AuthService;
 public class AuthController {
 
 	private final AuthService authService;
+
+	@GetMapping("/redirect")
+	public String redirectByRole(Authentication authentication) {
+
+		Collection<? extends GrantedAuthority> roles = authentication.getAuthorities();
+
+		if (roles.stream().anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"))) {
+			return "redirect:/admin/dashboard";
+		}
+
+		return "redirect:/home";
+	}
+
+	@GetMapping("/admin/dashboard")
+	public String dashboardPage() {
+		return "admin/dashboard";
+	}
 
 	@GetMapping("/register")
 	public String registerPage(Model model) {
@@ -59,7 +81,19 @@ public class AuthController {
 	}
 
 	@GetMapping("/login")
-	public String loginPage() {
+	public String loginPage(Authentication authentication) {
+		if (authentication != null && authentication.isAuthenticated()
+				&& !(authentication instanceof AnonymousAuthenticationToken)) {
+
+			boolean isAdmin = authentication.getAuthorities().stream()
+					.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+			if (isAdmin) {
+				return "redirect:/admin/dashboard";
+			}
+
+			return "redirect:/home";
+		}
 		return "auth/login";
 	}
 

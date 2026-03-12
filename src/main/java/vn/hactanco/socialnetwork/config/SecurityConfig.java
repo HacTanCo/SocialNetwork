@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.session.security.web.authentication.SpringSessionRememberMeServices;
 
 import vn.hactanco.socialnetwork.service.UserService;
 
@@ -33,13 +34,13 @@ public class SecurityConfig {
 		return dao;
 	}
 
-//	@Bean
-//	SpringSessionRememberMeServices rememberMeServices() {
-//		SpringSessionRememberMeServices rememberMeServices = new SpringSessionRememberMeServices();
-//		rememberMeServices.setValiditySeconds(60 * 60 * 24 * 30); // 30days
-//		// rememberMeServices.setAlwaysRemember(true);//ignore checkbox
-//		return rememberMeServices;
-//	}
+	@Bean
+	SpringSessionRememberMeServices rememberMeServices() {
+		SpringSessionRememberMeServices rememberMeServices = new SpringSessionRememberMeServices();
+		rememberMeServices.setValiditySeconds(60 * 60 * 24 * 7);
+		// rememberMeServices.setAlwaysRemember(true);//ignore checkbox
+		return rememberMeServices;
+	}
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,14 +51,22 @@ public class SecurityConfig {
 				"/register", "/forgot-password",
 				"/verify-otp", "/reset-password"
 				};
-		http.authorizeHttpRequests((requests) -> requests.requestMatchers(WHITELIST).permitAll()
-				.requestMatchers("/user/**").hasRole("ADMIN").anyRequest().authenticated());
-		http.formLogin(
-				form -> form.loginPage("/login").defaultSuccessUrl("/home").failureUrl("/login?error").permitAll());
+		http.authorizeHttpRequests((requests) -> requests
+				.requestMatchers(WHITELIST).permitAll()
+//				.requestMatchers("/user/**").hasRole("ADMIN")
+				.anyRequest().authenticated());
+		http.formLogin(form -> form
+				.loginPage("/login")
+				.defaultSuccessUrl("/redirect")
+				.failureUrl("/login?error")
+				.permitAll());
 		// http.exceptionHandling(e -> e.accessDeniedPage("/access-deny"));
-		// http.sessionManagement(s ->
-		// s.maximumSessions(1).maxSessionsPreventsLogin(false).expiredUrl("/login?expire"));
-		// http.rememberMe(r -> r.rememberMeServices(rememberMeServices()));
+		 http.sessionManagement(s ->s
+				 .invalidSessionUrl("/login?expired")
+				 .maximumSessions(1)
+				 .maxSessionsPreventsLogin(false)
+				 .expiredUrl("/login?expire"));
+		 http.rememberMe(r -> r.rememberMeServices(rememberMeServices()));
 		return http.build();
 	}
 }

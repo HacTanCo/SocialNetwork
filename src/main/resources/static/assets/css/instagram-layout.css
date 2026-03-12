@@ -1,0 +1,393 @@
+/* ===== BASE STYLES ===== */
+/* Thiết lập cơ bản cho toàn bộ trang: loại bỏ margin mặc định, chiều cao tối thiểu full viewport,
+   font hệ thống giống Instagram, và background gradient nhẹ nhàng. */
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #fdfbfb, #ebedee);
+}
+
+/* Tạo hiệu ứng chấm nền tinh tế: sử dụng pseudo-element fixed để vẽ lưới chấm hồng nhạt,
+   không ảnh hưởng đến nội dung, z-index âm để nằm dưới cùng. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(228, 64, 95, 0.12) 1px, transparent 1px);
+    background-size: 48px 48px;
+    z-index: -1;
+}
+
+/* ===== LAYOUT COMPONENTS ===== */
+/* ===== SIDEBAR TRÁI FIXED ===== */
+/* Sidebar trái cố định bên trái màn hình: position fixed, full height viewport, width cố định 280px.
+   Sử dụng glassmorphism (background mờ trắng + blur), border phải hồng nhạt, z-index cao để overlay.
+   Overflow-y auto cho scroll nếu nội dung dài, padding 0 để kiểm soát bên trong. */
+.sidebar-left {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 280px;
+    /* Width cố định để không ảnh hưởng responsive */
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(228, 64, 95, 0.25);
+    color: #262626;
+    z-index: 1000;
+    /* Đảm bảo sidebar trên cùng các elements khác */
+    overflow-y: auto;
+    /* Cho phép scroll dọc nếu menu dài */
+    padding: 0;
+    /* Padding sẽ xử lý cho các child elements bên trong */
+}
+
+/* Padding chung cho tất cả direct children của sidebar-left (logo, menu, profile). */
+.sidebar-left>* {
+    padding: 1rem;
+    /* Padding nhất quán cho nội dung bên trong sidebar */
+}
+
+/* Style cho các nav-link trong sidebar: màu text tối, bo góc, transition mượt cho hover. */
+.sidebar-left .nav-link {
+    color: #262626 !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    padding: 0.5rem 1rem;
+    /* Padding nội bộ cho từng link */
+}
+
+/* Hiệu ứng hover cho nav-link: background hồng nhạt, text chuyển sang accent hồng. */
+.sidebar-left .nav-link:hover {
+    background-color: rgba(228, 64, 95, 0.1);
+    color: #E4405F !important;
+}
+
+/* Icon Instagram trong logo: màu accent hồng đặc trưng. */
+.sidebar-left .bi-instagram {
+    color: #E4405F !important;
+}
+
+/* ===== SIDEBAR PHẢI FIXED ===== */
+/* Sidebar phải cố định bên phải màn hình: tương tự sidebar trái, nhưng right: 0, width 300px,
+   border trái hồng nhạt, overflow-y auto để scroll nội dung suggestions nếu dài. */
+.sidebar-right {
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    width: 300px;
+    /* Width cố định, rộng hơn sidebar trái để fit suggestions */
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-left: 1px solid rgba(228, 64, 95, 0.25);
+    color: #262626;
+    z-index: 1000;
+    /* Giữ z-index cao để overlay */
+    overflow-y: auto;
+    /* Scroll dọc nếu nội dung dài */
+    padding: 0;
+    /* Padding cho child elements */
+}
+
+/* Padding chung cho direct children của sidebar-right (user info, suggestions, footer). */
+.sidebar-right>* {
+    padding: 1rem;
+    /* Padding nhất quán */
+}
+
+/* ===== FEED CHÍNH (MAIN CONTENT) ===== */
+/* Wrapper cho feed: margin bù cả hai sidebar fixed (left + right), để feed ở giữa không overlap.
+   Main bên trong: glassmorphism, border không cần vì sidebars đã có, text tối, max-width giới hạn. */
+.content-wrapper {
+    margin-left: 280px;
+    /* Bù sidebar trái */
+    margin-right: 300px;
+    /* Bù sidebar phải */
+}
+
+main {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #262626;
+    max-width: 614px;
+    /* Width chuẩn Instagram cho feed */
+    margin: 0 auto;
+    /* Center feed trong wrapper */
+}
+
+/* Stories carousel: ẩn scrollbar để mượt mà, overflow auto cho horizontal scroll. */
+.stories {
+    scrollbar-width: none;
+    /* Ẩn scrollbar trên Firefox */
+}
+
+.stories::-webkit-scrollbar {
+    display: none;
+    /* Ẩn scrollbar trên Chrome/Safari */
+}
+
+/* Style cho mỗi post: background trắng, border xám nhạt, bo góc, shadow nhẹ để nổi bật. */
+.post {
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Ảnh post: bo góc 0 để full-bleed trong post container. */
+.post-media img {
+    border-radius: 0;
+}
+
+/* Icon heart mặc định: màu tối. */
+.post .bi-heart {
+    color: #262626 !important;
+}
+
+/* Icon heart khi liked: màu hồng accent. */
+.post .bi-heart.text-danger {
+    color: #E4405F !important;
+}
+
+/* Input comment trong post: background xám nhạt, border xám, text tối. */
+.post .form-control {
+    background: #fafafa;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    color: #262626;
+}
+
+/* Placeholder text cho input: màu xám nhạt. */
+.post .form-control::placeholder {
+    color: #8e8e8e;
+}
+
+/* ===== BUTTONS & LINKS TRONG SIDEBAR PHẢI ===== */
+/* Button "Theo dõi" hoặc "Chuyển": border xám, text tối, bo góc nhỏ. */
+.sidebar-right .btn-outline-secondary {
+    border-color: #dbdbdb;
+    color: #262626;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+/* Hover cho button: background hồng nhạt, border và text chuyển hồng. */
+.sidebar-right .btn-outline-secondary:hover {
+    background-color: rgba(228, 64, 95, 0.1);
+    border-color: #E4405F;
+    color: #E4405F;
+}
+
+/* Link footer (Giới thiệu, Blog...): màu xám nhạt, transition cho hover. */
+.sidebar-right a.text-muted {
+    color: #8e8e8e !important;
+    transition: color 0.2s;
+}
+
+/* Hover cho link footer: chuyển sang text tối. */
+.sidebar-right a.text-muted:hover {
+    color: #262626 !important;
+}
+
+/* ===== FOOTER LINKS TRONG SIDEBAR PHẢI (ĐẨY XUỐNG DƯỚI) ===== */
+/* Container footer links: full height còn lại, flex để đẩy xuống dưới sidebar. */
+.footer-links {
+    margin-top: auto;
+    /* Đẩy xuống dưới tự động */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: calc(100vh - 400px);
+    /* Adjust dựa trên height suggestions (tùy chỉnh nếu cần) */
+}
+
+/* ===== OFFCANVAS CHO MOBILE (SIDEBAR TRÁI TRÊN MOBILE) ===== */
+/* Offcanvas slide-in từ trái: background mờ trắng, blur, border phải hồng, text tối. */
+.offcanvas {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    border-right: 1px solid rgba(228, 64, 95, 0.25) !important;
+    color: #262626;
+}
+
+/* Nav-link trong offcanvas: text tối. */
+.offcanvas .nav-link {
+    color: #262626 !important;
+}
+
+/* Hover cho nav-link trong offcanvas: tương tự sidebar desktop. */
+.offcanvas .nav-link:hover {
+    background-color: rgba(228, 64, 95, 0.1);
+    color: #E4405F !important;
+}
+
+/* ===== HAMBURGER BUTTON CHO MOBILE ===== */
+/* Nút hamburger (bi-list) trên mobile: background mờ trắng, border hồng nhạt, text tối. */
+.btn-dark.d-lg-none {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(228, 64, 95, 0.25) !important;
+    color: #262626 !important;
+    backdrop-filter: blur(12px);
+}
+
+/* Hover cho hamburger: background hồng nhạt, text hồng. */
+.btn-dark.d-lg-none:hover {
+    background: rgba(228, 64, 95, 0.1) !important;
+    color: #E4405F !important;
+}
+
+/* ===== STORY RING (VÒNG TRÒN CHO STORY) ===== */
+/* Border cho story avatar: màu hồng accent. */
+.border-danger {
+    border-color: #E4405F !important;
+}
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+/* Trên tablet (dưới 1200px): ẩn sidebar phải, reset margin-right cho wrapper. */
+@media (max-width: 1199px) {
+    .sidebar-right {
+        display: none !important;
+    }
+
+    .content-wrapper {
+        margin-right: 0 !important;
+        /* Reset khi ẩn sidebar phải */
+    }
+}
+
+/* Trên mobile/tablet (dưới 992px): ẩn sidebar trái fixed, dùng offcanvas thay thế.
+   Reset margin-left cho wrapper, khôi phục border-left cho main, full width. */
+@media (max-width: 991px) {
+    .sidebar-left {
+        display: none !important;
+        /* Ẩn fixed sidebar trái trên mobile/tablet */
+    }
+
+    .content-wrapper {
+        margin-left: 0 !important;
+        /* Reset margin khi ẩn sidebar trái */
+        margin-right: 0 !important;
+    }
+
+    main {
+        border-left: 1px solid rgba(228, 64, 95, 0.25);
+        /* Khôi phục border trái cho main */
+        max-width: 100% !important;
+        /* Full width cho feed */
+    }
+}
+
+/* Trên mobile nhỏ (dưới 576px): giảm padding cho main, bo góc post nhỏ hơn cho compact. */
+@media (max-width: 576px) {
+    main {
+        padding: 12px !important;
+        /* Giảm padding cho màn hình nhỏ */
+    }
+
+    .post {
+        margin-bottom: 16px;
+        /* Giảm khoảng cách giữa posts */
+        border-radius: 8px;
+        /* Bo góc nhỏ hơn cho mobile */
+    }
+}
+
+/* ===== INTEGRATE WITH AUTH STYLE (TÍCH HỢP STYLE TỪ LOGIN/REGISTER) ===== */
+/* Style chung cho button: bo góc, font đậm, transition mượt. */
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+/* Hover cho button: nâng lên nhẹ (transform) để tạo cảm giác interactive. */
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Focus cho input: border và shadow hồng accent, giống form login/register. */
+.form-control:focus {
+    border-color: #E4405F;
+    box-shadow: 0 0 0 2px rgba(228, 64, 95, 0.25);
+}
+
+/* ===== ANIMATIONS ===== */
+/* Animation fade-up cho mỗi post: trượt lên từ dưới khi load, opacity từ 0 đến 1. */
+.post {
+    animation: fadeUp 0.3s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+        /* Bắt đầu từ vị trí thấp hơn 10px */
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        /* Kết thúc ở vị trí bình thường */
+    }
+}
+/* Story Avatar Ring: Gradient pink border around avatar, similar to Instagram stories */
+.story-avatar {
+    position: relative;
+    z-index: 2;
+    border: 3px solid transparent;
+    /* Base border for layering */
+}
+
+.story-ring {
+    position: absolute;
+    top: -3px;
+    /* Offset to create ring */
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #f09433 0deg, #e6683c 25deg, #dc2743 50deg, #cc2366 75deg, #bc1888 100deg);
+    /* Pink-orange gradient ring */
+    z-index: 1;
+    border-radius: 50%;
+    padding: 3px;
+    /* Thickness of the ring */
+    box-shadow: 0 0 0 1px #fff;
+    /* White inner shadow for crisp edge */
+}
+
+/* Username below story: white, bold, small font, centered below avatar */
+.story-item small {
+    background: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent black bg for readability */
+    border-radius: 10px;
+    padding: 2px 4px;
+    z-index: 3;
+    color: #fff !important;
+    margin-top: 2px;
+    /* Khoảng cách nhỏ từ avatar */
+}
+
+/* Responsive: Adjust on small screens */
+@media (max-width: 576px) {
+    .story-ring {
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        padding: 2px;
+    }
+
+    .story-item small {
+        font-size: 0.7rem;
+        /* Nhỏ hơn trên mobile */
+        margin-top: 1px;
+    }
+}
+

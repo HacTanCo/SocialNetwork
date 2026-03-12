@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="mobile-sidebar">
+	<!-- Mobile: Hamburger button to toggle left sidebar -->
+	<button class="btn d-lg-none position-fixed top-0 start-0 m-3 z-3" type="button" data-bs-toggle="offcanvas"
+		data-bs-target="#sidebarOffcanvas"
+		style="background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(228, 64, 95, 0.25); color: #262626;">
+		<i class="bi bi-list fs-3"></i>
+	</button>
+
+	<!-- Offcanvas Sidebar Trái cho Mobile -->
+	<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas">
+		<div class="offcanvas-header border-bottom" style="border-color: rgba(228, 64, 95, 0.25);">
+			<a th:href="@{/home}" class="d-flex align-items-center mb-4 p-3 text-decoration-none text-dark">
+				    <i class="bi bi-instagram text-danger fs-3 me-2"></i>
+				    <span class="fs-4 fw-bold">Instagram</span>
+				</a>
+			<button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+		</div>
+		<div class="offcanvas-body">
+			<!-- Menu Items -->
+			<ul class="nav flex-column mb-4">
+				<li class="nav-item">
+					<a th:href="@{/home}" class="nav-link d-flex align-items-center mb-2">
+						<i class="bi bi-house fs-4 me-3"></i>
+						<span>Trang chủ</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a th:href="@{/friend}" class="nav-link d-flex align-items-center mb-2">
+						<i class="bi bi-people fs-4 me-3"></i>
+						<span>Bạn bè</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a href="#" class="nav-link d-flex align-items-center mb-2">
+						<i class="bi bi-heart fs-4 me-3"></i>
+						<span>Thông báo</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a href="#" class="nav-link d-flex align-items-center mb-2" data-bs-toggle="modal"
+						data-bs-target="#createPostModal">
+						<i class="bi bi-plus-square fs-4 me-3"></i>
+						<span>Tạo</span>
+					</a>
+				</li>
+				<li>
+					<a th:href="@{/profile}" class="nav-link d-flex align-items-center mb-2">
+						<img th:src="@{/assets/images/default-avatar.jpg}" height="30" width="30"
+							class="rounded-circle me-3" alt="Profile">
+						<span>Trang cá nhân</span>
+					</a>
+				</li>
+				<li class="nav-item dropdown">
+					<a href="#" class="nav-link d-flex align-items-center mb-2 dropdown-toggle" role="button"
+						data-bs-toggle="dropdown" aria-expanded="false">
+						<i class="bi bi-list fs-4 me-3"></i>
+						<span>Xem thêm</span>
+					</a>
+
+					<ul class="dropdown-menu" style="border-radius: 10px; min-width: 200px;">
+						<li>
+							<button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+								Đổi mật khẩu
+							</button>
+						</li>
+						<li>
+							<hr class="dropdown-divider">
+						</li>
+						<li>
+						    <form th:action="@{/logout}" method="post" class="m-0">
+						        <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+						            <i class="bi bi-box-arrow-right me-2"></i>
+						            Đăng xuất
+						        </button>
+						    </form>
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<!-- Sidebar Trái Fixed (desktop) -->
+<nav class="sidebar-left d-none d-lg-block" th:fragment="sidebar-left">
+	<!-- Logo -->
+	<a th:href="@{/home}" class="d-flex align-items-center mb-4 p-3 text-decoration-none text-dark">
+	    <i class="bi bi-instagram text-danger fs-3 me-2"></i>
+	    <span class="fs-4 fw-bold">Instagram</span>
+	</a>
+
+	<!-- Menu Items -->
+	<ul class="nav flex-column mb-4">
+		<!-- Trang chủ -->
+		<li class="nav-item">
+			<a th:href="@{/home}" class="nav-link d-flex align-items-center mb-2">
+				<i class="bi bi-house fs-4 me-3"></i>
+				<span>Trang chủ</span>
+			</a>
+		</li>
+
+		<!-- Bạn bè -->
+		<li class="nav-item">
+			<a th:href="@{/friend}" class="nav-link d-flex align-items-center mb-2">
+				<i class="bi bi-people fs-4 me-3"></i>
+				<span>Bạn bè</span>
+			</a>
+		</li>
+
+		<!-- Thông báo -->
+		<li class="nav-item">
+			<a href="#" class="nav-link d-flex align-items-center mb-2">
+				<i class="bi bi-heart fs-4 me-3"></i>
+				<span>Thông báo</span>
+			</a>
+		</li>
+
+		<!-- Tạo bài viết (mở modal) -->
+		<li class="nav-item">
+			<a href="#" class="nav-link d-flex align-items-center mb-2" data-bs-toggle="modal"
+				data-bs-target="#createPostModal">
+				<i class="bi bi-plus-square fs-4 me-3"></i>
+				<span>Tạo</span>
+			</a>
+		</li>
+
+		<!-- Trang cá nhân -->
+		<li class="nav-item">
+			<a th:href="@{/profile}" class="nav-link d-flex align-items-center mb-2">
+				<img th:src="@{/assets/images/default-avatar.jpg}" height="30" width="30" class="rounded-circle me-3"
+					alt="Profile">
+				<span>Trang cá nhân</span>
+			</a>
+		</li>
+
+		<!-- Dropdown Xem thêm -->
+		<li class="nav-item dropdown">
+			<a href="#" class="nav-link d-flex align-items-center mb-2 dropdown-toggle" role="button"
+				data-bs-toggle="dropdown" aria-expanded="false">
+				<i class="bi bi-list fs-4 me-3"></i>
+				<span>Xem thêm</span>
+			</a>
+
+			<ul class="dropdown-menu" style="border-radius: 10px; min-width: 200px;">
+				<!-- Đổi mật khẩu -->
+				<li>
+					<button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+						Đổi mật khẩu
+					</button>
+				</li>
+
+				<li>
+					<hr class="dropdown-divider">
+				</li>
+
+				<!-- Đăng xuất -->
+				<li>
+					<form th:action="@{/logout}" method="post">
+					    <button class="dropdown-item d-flex align-items-center text-danger">
+					        <i class="bi bi-box-arrow-right me-2"></i>
+					        Đăng xuất
+					    </button>
+					</form>
+				</li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+
+</html>

@@ -1,0 +1,22 @@
+.ai-user {
+  background: #0d6efd;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-assistant {
+  background: #f1f3f5;
+  color: #212529;
+  border: 1px solid #dee2e6;
+  border-bottom-left-radius: 4px;
+}
+.ai-bubble {
+  max-width: 60%;
+  width: fit-content;        /* 🔥 FIX CHÍNH */
+  padding: 6px 10px;
+  font-size: 16px;
+  line-height: 1.4;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
