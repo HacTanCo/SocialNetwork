@@ -135,3 +135,42 @@ Sử dụng **DTO** cho dữ liệu từ:
 - Bổ sung **Remember Me**
 - Sử dụng **Spring Session JDBC**
 - Thiết kế giao diện cho **User**
+### 13/3
+- Hoàn thiện **UI tạo bài viết (Create Post Modal)**
+
+#### Media Upload Preview
+- Cho phép upload **multiple images / videos**
+- Hiển thị preview trước khi đăng bài
+- Sử dụng **Bootstrap Carousel** để hiển thị media dạng slider
+
+#### Media Slider Improvements
+- Giới hạn chiều cao preview để tránh modal bị kéo dài
+- Căn giữa ảnh/video bằng **flexbox**
+- Hỗ trợ hiển thị media với kích thước khác nhau
+
+#### Media Delete Before Upload
+- Thêm nút **❌ xóa media trước khi đăng**
+- Hover vào media sẽ hiển thị nút xóa
+- Cập nhật lại danh sách file bằng **DataTransfer API**
+
+#### Media Counter
+- Thêm **media counter (1 / N)** giống Facebook
+- Counter cập nhật khi chuyển slide bằng:
+  - `slid.bs.carousel` event của Bootstrap
+
+#### Carousel UI Improvements
+- Thu nhỏ vùng click của **prev/next control**
+- Căn giữa nút `<` `>` theo chiều dọc
+- Thêm background tròn cho icon
+- Chỉ hiển thị arrow khi hover slider
+
+#### UX Improvements
+- Hover media hiển thị nút delete
+- Hover delete button đổi màu đỏ
+- Counter nằm giữa phía dưới slider
+
+#### Kỹ thuật sử dụng
+- **JavaScript DOM Manipulation**
+- **DataTransfer API**
+- **Bootstrap Carousel Events**
+- **Flexbox Layout**

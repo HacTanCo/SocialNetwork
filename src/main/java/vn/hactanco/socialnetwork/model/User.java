@@ -57,4 +57,6 @@ public class User {
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<OtpResetPassword> otpResetPasswords;
 
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Post> posts;
 }
