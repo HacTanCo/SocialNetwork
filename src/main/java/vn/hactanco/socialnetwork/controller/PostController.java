@@ -1,13 +1,32 @@
 package vn.hactanco.socialnetwork.controller;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
+import vn.hactanco.socialnetwork.model.Post;
+import vn.hactanco.socialnetwork.model.User;
+import vn.hactanco.socialnetwork.service.PostService;
+import vn.hactanco.socialnetwork.service.UserService;
 
 @Controller
-
+@RequiredArgsConstructor
 public class PostController {
+	private final PostService postService;
+	private final UserService userService;
+
 	@GetMapping("/")
 	public String root(Authentication authentication) {
 		if (authentication != null && authentication.isAuthenticated()
@@ -26,7 +45,40 @@ public class PostController {
 	}
 
 	@GetMapping("/home")
-	public String homePage() {
+	public String homePage(Model model, HttpSession session, Authentication authentication) {
+//		if (session.getAttribute("USER") == null) {
+//			User user = userService.findUserByEmail(authentication.getName());
+//			session.setAttribute("USER", user);
+//		}
+		List<Post> posts = postService.getAllPosts();
+
+		model.addAttribute("posts", posts);
+
 		return "home";
+	}
+
+	@PostMapping("/post/create")
+	public String createPost(@RequestParam String content, @RequestParam MultipartFile[] files,
+			Authentication authentication, RedirectAttributes redirectAttributes) {
+
+		try {
+
+			String email = authentication.getName();
+			User user = userService.findUserByEmail(email);
+
+			postService.createPost(content, files, user);
+
+			redirectAttributes.addFlashAttribute("success", "Đăng bài thành công");
+
+		} catch (ResourceNotFoundException ex) {
+
+			redirectAttributes.addFlashAttribute("error", ex.getMessage());
+
+		} catch (IOException ex) {
+
+			redirectAttributes.addFlashAttribute("error", "Upload file thất bại");
+
+		}
+		return "redirect:/home";
 	}
 }

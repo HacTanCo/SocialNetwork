@@ -12,118 +12,198 @@
 </head>
 
 <body>
+	<!-- TOAST MESSAGE -->
+		<div class="toast-container position-fixed top-0 end-0 p-3">
 
+			<!-- Success -->
+			<div th:if="${success}" class="toast text-bg-success border-0" id="successToast">
+
+				<div class="d-flex">
+					<div class="toast-body" th:text="${success}">
+					</div>
+
+					<button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+				</div>
+			</div>
+
+			<!-- Error -->
+			<div th:if="${error}" class="toast text-bg-danger border-0" id="errorToast">
+
+				<div class="d-flex">
+					<div class="toast-body" th:text="${error}">
+					</div>
+
+					<button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+				</div>
+			</div>
+
+		</div>
 	<!-- Sidebar Left-->
 	<div th:replace="~{layout/sidebar-left :: mobile-sidebar}"></div>
 	<div th:replace="~{layout/sidebar-left :: sidebar-left}"></div>
 	<div class="content-wrapper min-vh-100" style="margin-left: 280px; margin-right: 300px;">
 
-		<!-- Feed Chính -->
 		<main class="bg-light text-dark px-3 py-3 overflow-auto" style="max-width: 614px; margin: 0 auto;">
 
-			<!-- Stories (hard-coded) -->
+			<!-- STORIES -->
 			<div class="stories mb-4 d-flex justify-content-center overflow-auto pb-2 pt-2">
-				<!-- Bạn có thể loop nếu có list stories sau này -->
 				<div class="story-item me-3" th:each="i : ${#numbers.sequence(1,3)}">
 					<div class="position-relative">
-						<img src="/assets/images/default-avatar.jpg" class="rounded-circle story-avatar"
-							style="width: 66px; height: 66px;" alt="Story">
-						<div class="story-ring"></div>
+						<img src="/assets/images/default-avatar.jpg" class="rounded-circle"
+							style="width:66px;height:66px;">
 					</div>
-					<small class="d-block text-center mt-1 text-white fw-bold small">user</small>
+					<small class="d-block text-center mt-1 text-muted">user</small>
 				</div>
-				<!-- Add + button -->
+
 				<div class="story-item me-3">
-					<div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center border-2"
-						style="width: 66px; height: 66px; border-style: dashed; border-color: #dbdbdb;">
-						<i class="bi bi-plus-lg text-muted"></i>
+					<div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+						style="width:66px;height:66px;">
+						<i class="bi bi-plus-lg text-white"></i>
 					</div>
 				</div>
 			</div>
 
-			<!-- Posts -->
-			<div th:each="post : ${feed}" th:id="'post-' + ${post.postId}" class="post mb-4">
+			<!-- POSTS -->
+			<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white">
 
-				<!-- Post Header -->
-				<div class="d-flex align-items-center p-3 border-bottom" style="border-color: #dbdbdb;">
-					<img th:src="@{${post.avatar != null ? post.avatar : '/assets/images/default-avatar.jpg'}}"
-						class="rounded-circle me-2" style="width: 40px; height: 40px;" alt="Avatar">
-					<div class="flex-grow-1">
-						<div class="fw-bold" th:text="${post.fullName}"></div>
-					</div>
+				<!-- HEADER -->
+				<div class="d-flex align-items-center p-3 border-bottom">
 
-					<div th:if="${session.user != null and session.user.id == post.userId}" class="dropdown"
-						th:attr="data-post-id=${post.postId}">
-						<button class="btn p-0 border-0 text-muted" type="button" data-bs-toggle="dropdown">
-							<i class="bi bi-three-dots fs-5"></i>
-						</button>
-						<ul class="dropdown-menu dropdown-menu-end"
-							style="border: 1px solid #dbdbdb; border-radius: 8px;">
-							<li><button class="dropdown-item" type="button" onclick="editPost(this)">Sửa</button></li>
-							<li><button class="dropdown-item text-danger" type="button"
-									onclick="deletePost(this)">Xóa</button></li>
-						</ul>
+					<img th:src="@{/assets/images/default-avatar.jpg}" class="rounded-circle me-2"
+						style="width:40px;height:40px;">
+
+					<div class="fw-bold" th:text="${post.user != null ? post.user.name : 'Unknown'}">
 					</div>
+					<!-- Dropdown Menu Trigger (three dots icon) -->
+					<!--<div th:if="${session.USER.id == post.user.id}"
+					     class="dropdown"
+					     th:attr="data-post-id=${post.id}">
+
+					    <button class="btn p-0 border-0 text-muted"
+					            type="button"
+					            data-bs-toggle="dropdown">
+
+					        <i class="bi bi-three-dots fs-5"></i>
+
+					    </button>
+
+					    <ul class="dropdown-menu dropdown-menu-end"
+					        style="border: 1px solid #dbdbdb; border-radius: 8px;">
+
+					        <li>
+					            <button class="dropdown-item"
+					                    type="button"
+					                    onclick="editPost(this)">
+					                Sửa
+					            </button>
+					        </li>
+
+					        <li>
+					            <button class="dropdown-item text-danger"
+					                    type="button"
+					                    onclick="deletePost(this)">
+					                Xóa
+					            </button>
+					        </li>
+
+					    </ul>
+
+					</div>-->
 				</div>
 
-				<!-- Post Image -->
-				<div class="post-media">
-					<img th:src="@{${post.image}}" class="img-fluid w-100" alt="Post"
-						style="aspect-ratio: 1/1; object-fit: cover;">
-				</div>
 
-				<!-- Post Actions -->
-				<div class="p-3">
-					<div class="d-flex align-items-center mb-2">
-						<div class="d-flex align-items-center gap-3">
-							<!-- Like -->
-							<div class="d-flex align-items-center">
-								<i th:classappend="${post.liked ? 'bi-heart-fill text-danger' : 'bi-heart'}"
-									class="fs-5 me-1" th:onclick="'likePost(this, ' + ${post.postId} + ')'"></i>
-								<span th:id="'like-count-' + ${post.postId}" class="fw-semibold"
-									th:text="${post.likeCount}"></span>
+				<!-- MEDIA -->
+				<div th:if="${post.medias != null and !post.medias.isEmpty()}" class="post-media">
+
+					<!-- 1 MEDIA -->
+					<div th:if="${#lists.size(post.medias) == 1}" class="media-wrapper">
+
+						<img th:if="${post.medias[0].mediaType.name() == 'IMAGE'}" th:src="${post.medias[0].mediaUrl}">
+
+						<video th:if="${post.medias[0].mediaType.name() == 'VIDEO'}" controls>
+							<source th:src="${post.medias[0].mediaUrl}">
+						</video>
+
+					</div>
+
+
+					<!-- MULTIPLE MEDIA -->
+					<div th:if="${#lists.size(post.medias) > 1}" th:id="'carousel-' + ${post.id}"
+						class="carousel slide">
+
+						<div class="carousel-inner">
+
+							<div th:each="media, stat : ${post.medias}"
+								th:class="|carousel-item ${stat.index == 0 ? 'active' : ''}|">
+
+								<div class="media-wrapper">
+
+									<img th:if="${media.mediaType.name() == 'IMAGE'}" th:src="${media.mediaUrl}">
+
+									<video th:if="${media.mediaType.name() == 'VIDEO'}" controls>
+										<source th:src="${media.mediaUrl}">
+									</video>
+
+								</div>
+
 							</div>
 
-							<!-- Comment -->
-							<div class="d-flex align-items-center">
-								<i class="bi bi-chat text-dark fs-5 me-1"
-									th:onclick="'openCommentModal(' + ${post.postId} + ')'"></i>
-								<span th:id="'comment-count-' + ${post.postId}" class="fw-semibold"
-									th:text="${post.commentCount}"></span>
-							</div>
-
-							<i class="bi bi-send text-dark fs-5"></i>
 						</div>
 
-						<i class="bi bi-bookmark ms-auto text-dark fs-5"></i>
+
+						<button class="carousel-control-prev" type="button"
+							th:data-bs-target="'#carousel-' + ${post.id}" data-bs-slide="prev">
+
+							<span class="carousel-control-prev-icon"></span>
+
+						</button>
+
+						<button class="carousel-control-next" type="button"
+							th:data-bs-target="'#carousel-' + ${post.id}" data-bs-slide="next">
+
+							<span class="carousel-control-next-icon"></span>
+
+						</button>
+
 					</div>
 
-					<div class="d-flex mb-2">
-						<div class="fw-bold me-2" th:text="${post.fullName}"></div>
-						<span th:id="'post-content-' + ${post.postId}" th:text="${post.content}"></span>
-					</div>
-
-					<div class="comment-list mt-2" th:id="'comment-list-' + ${post.postId}"></div>
-
-					<!-- Input comment (bạn có thể bật lại nếu cần) -->
-					<!--
-                <div class="mt-2">
-                    <input type="text" class="form-control bg-light text-dark border"
-                           th:id="'comment-input-' + ${post.postId}"
-                           placeholder="Thêm bình luận..." style="border-color: #dbdbdb;"
-                           onkeydown="handleCommentKey(event, ${post.postId})">
-                </div>
-                -->
 				</div>
+
+
+				<!-- ACTION -->
+				<div class="p-3">
+
+					<div class="d-flex gap-3 mb-2">
+
+						<i class="bi bi-heart fs-5"></i>
+						<i class="bi bi-chat fs-5"></i>
+						<i class="bi bi-send fs-5"></i>
+
+						<i class="bi bi-bookmark ms-auto fs-5"></i>
+
+					</div>
+
+					<div>
+
+						<span class="fw-bold" th:text="${post.user.name}">
+						</span>
+
+						<span th:text="${post.content}"></span>
+
+					</div>
+
+				</div>
+
 			</div>
 
 		</main>
+
 	</div>
 
 	<!-- Sidebar Phải (gợi ý bạn bè) -->
 	<div th:replace="~{layout/sidebar-right :: sidebar-right}"></div>
 
-	
+
 	<!-- ================== MODALS  ================== -->
 	<div th:replace="~{layout/modals :: modals}"></div>
 
@@ -138,7 +218,26 @@
 	<script th:src="@{/assets/js/toggleChangePassword.js}"></script>
 	<script th:src="@{/assets/js/follow.js}"></script>
 	<script th:src="@{/assets/js/previewImage.js}"></script>
+	<script>
 
+			document.addEventListener("DOMContentLoaded", function () {
+
+				const successToast = document.getElementById("successToast");
+				const errorToast = document.getElementById("errorToast");
+
+				if (successToast) {
+					const toast = new bootstrap.Toast(successToast, {delay: 2000});
+					toast.show();
+				}
+
+				if (errorToast) {
+					const toast = new bootstrap.Toast(errorToast, {delay: 2000});
+					toast.show();
+				}
+
+			});
+
+		</script>
 </body>
 
 </html>

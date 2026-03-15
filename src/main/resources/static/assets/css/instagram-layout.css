@@ -479,3 +479,25 @@ main {
     font-size:14px;
     z-index:15;
 }
+/* ===== POST MEDIA (giống preview upload) ===== */
+
+.post-media{
+    background:#f5f5f5;
+}
+
+.post-media .media-wrapper{
+    position:relative;
+    height:450px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f5f5f5;
+}
+
+/* ảnh và video hiển thị giống preview */
+.post-media img,
+.post-media video{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+}
