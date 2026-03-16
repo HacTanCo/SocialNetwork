@@ -3,11 +3,11 @@
 
 <aside class="sidebar-right d-none d-xl-block" th:fragment="sidebar-right">
 		<div class="d-flex align-items-center p-3 border-bottom" style="border-color:#dbdbdb;">
-			<img th:src="@{/assets/images/default-avatar.jpg}" class="rounded-circle me-3"
+			<img th:src="@{${session.USER.avatar}}" class="rounded-circle me-3"
 				style="width:44px;height:44px;">
-			<!--<div class="fw-bold" th:text="${user.fullName}"></div>-->
+			<div class="fw-bold" th:text="${session.USER.name}"></div>
 		</div>
-
+		
 		<div class="mt-1">
 			<div class="d-flex justify-content-between align-items-center mb-2">
 				<h6 class="mb-0">Gợi ý cho bạn</h6>

@@ -48,7 +48,7 @@
 				</li>
 				<li>
 					<a th:href="@{/profile}" class="nav-link d-flex align-items-center mb-2">
-						<img th:src="@{/assets/images/default-avatar.jpg}" height="30" width="30"
+						<img th:src="@{${session.USER.avatar}}" height="30" width="30"
 							class="rounded-circle me-3" alt="Profile">
 						<span>Trang cá nhân</span>
 					</a>
@@ -130,7 +130,7 @@
 		<!-- Trang cá nhân -->
 		<li class="nav-item">
 			<a th:href="@{/profile}" class="nav-link d-flex align-items-center mb-2">
-				<img th:src="@{/assets/images/default-avatar.jpg}" height="30" width="30" class="rounded-circle me-3"
+				<img th:src="@{${session.USER.avatar}}" height="30" width="30" class="rounded-circle me-3"
 					alt="Profile">
 				<span>Trang cá nhân</span>
 			</a>

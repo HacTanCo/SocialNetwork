@@ -1,13 +1,14 @@
 package vn.hactanco.socialnetwork.controller;
 
 import java.io.IOException;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,14 +46,18 @@ public class PostController {
 	}
 
 	@GetMapping("/home")
-	public String homePage(Model model, HttpSession session, Authentication authentication) {
-//		if (session.getAttribute("USER") == null) {
-//			User user = userService.findUserByEmail(authentication.getName());
-//			session.setAttribute("USER", user);
-//		}
-		List<Post> posts = postService.getAllPosts();
+	public String homePage(Model model, HttpSession session, Authentication authentication,
+			@RequestParam(defaultValue = "0") int page) {
+		if (session.getAttribute("USER") == null) {
+			User user = userService.findUserByEmail(authentication.getName());
+			session.setAttribute("USER", user);
+		}
 
-		model.addAttribute("posts", posts);
+		Page<Post> postPage = postService.getFeed(page, 10);
+
+		model.addAttribute("posts", postPage.getContent());
+		model.addAttribute("currentPage", page);
+		model.addAttribute("totalPages", postPage.getTotalPages());
 
 		return "home";
 	}
@@ -79,6 +84,41 @@ public class PostController {
 			redirectAttributes.addFlashAttribute("error", "Upload file thất bại");
 
 		}
+		return "redirect:/home";
+	}
+
+	@PostMapping("/post/delete/{id}")
+	public String deletePost(@PathVariable Long id, Authentication authentication) {
+		User user = this.userService.findUserByEmail(authentication.getName());
+
+		postService.deletePost(id, user);
+
+		return "redirect:/home";
+	}
+
+	@PostMapping("/post/update/{id}")
+	public String editPost(@PathVariable Long id, @RequestParam String content, Authentication authentication,
+			RedirectAttributes redirectAttributes) {
+
+		try {
+
+			String email = authentication.getName();
+			User user = userService.findUserByEmail(email);
+
+			postService.updatePost(id, content, user);
+
+			redirectAttributes.addFlashAttribute("success", "Cập nhật bài viết thành công");
+
+		} catch (ResourceNotFoundException ex) {
+
+			redirectAttributes.addFlashAttribute("error", ex.getMessage());
+
+		} catch (Exception ex) {
+
+			redirectAttributes.addFlashAttribute("error", "Không thể cập nhật bài viết");
+
+		}
+
 		return "redirect:/home";
 	}
 }

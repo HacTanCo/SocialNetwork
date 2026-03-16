@@ -4,6 +4,8 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="_csrf" th:content="${_csrf.token}">
+	<meta name="_csrf_header" th:content="${_csrf.headerName}">
 	<title>MiniInstagram</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -13,31 +15,31 @@
 
 <body>
 	<!-- TOAST MESSAGE -->
-		<div class="toast-container position-fixed top-0 end-0 p-3">
+	<div class="toast-container position-fixed top-0 end-0 p-3">
 
-			<!-- Success -->
-			<div th:if="${success}" class="toast text-bg-success border-0" id="successToast">
+		<!-- Success -->
+		<div th:if="${success}" class="toast text-bg-success border-0" id="successToast">
 
-				<div class="d-flex">
-					<div class="toast-body" th:text="${success}">
-					</div>
-
-					<button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+			<div class="d-flex">
+				<div class="toast-body" th:text="${success}">
 				</div>
+
+				<button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
 			</div>
-
-			<!-- Error -->
-			<div th:if="${error}" class="toast text-bg-danger border-0" id="errorToast">
-
-				<div class="d-flex">
-					<div class="toast-body" th:text="${error}">
-					</div>
-
-					<button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-				</div>
-			</div>
-
 		</div>
+
+		<!-- Error -->
+		<div th:if="${error}" class="toast text-bg-danger border-0" id="errorToast">
+
+			<div class="d-flex">
+				<div class="toast-body" th:text="${error}">
+				</div>
+
+				<button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+			</div>
+		</div>
+
+	</div>
 	<!-- Sidebar Left-->
 	<div th:replace="~{layout/sidebar-left :: mobile-sidebar}"></div>
 	<div th:replace="~{layout/sidebar-left :: sidebar-left}"></div>
@@ -62,53 +64,66 @@
 					</div>
 				</div>
 			</div>
-
+			
+			<div id="feed">
 			<!-- POSTS -->
-			<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white">
+			<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white" th:attr="data-post-id=${post.id}">
 
 				<!-- HEADER -->
-				<div class="d-flex align-items-center p-3 border-bottom">
+				<div class="d-flex justify-content-between align-items-center p-3 border-bottom">
 
-					<img th:src="@{/assets/images/default-avatar.jpg}" class="rounded-circle me-2"
-						style="width:40px;height:40px;">
+					<!-- Bên trái: avatar + tên + thời gian -->
+					<div class="d-flex align-items-center">
 
-					<div class="fw-bold" th:text="${post.user != null ? post.user.name : 'Unknown'}">
+						<img th:src="@{${post.user.avatar}}" class="rounded-circle me-2"
+							style="width:40px;height:40px;">
+
+						<div>
+
+							<div class="fw-bold" th:text="${post.user.name}"></div>
+
+							<small class="text-muted"
+								th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
+							</small>
+
+						</div>
+
 					</div>
-					<!-- Dropdown Menu Trigger (three dots icon) -->
-					<!--<div th:if="${session.USER.id == post.user.id}"
-					     class="dropdown"
-					     th:attr="data-post-id=${post.id}">
 
-					    <button class="btn p-0 border-0 text-muted"
-					            type="button"
-					            data-bs-toggle="dropdown">
+					<!-- Bên phải: 3 chấm -->
+					<div class="dropdown">
 
-					        <i class="bi bi-three-dots fs-5"></i>
+						<button class="btn p-0 border-0 text-muted" type="button" data-bs-toggle="dropdown">
+							<i class="bi bi-three-dots fs-5"></i>
+						</button>
 
-					    </button>
+						<ul class="dropdown-menu dropdown-menu-end"
+							style="border: 1px solid #dbdbdb; border-radius: 8px;">
 
-					    <ul class="dropdown-menu dropdown-menu-end"
-					        style="border: 1px solid #dbdbdb; border-radius: 8px;">
+							<!-- Chủ bài -->
+							<li th:if="${session.USER.id == post.user.id}">
+								<button class="dropdown-item" type="button" onclick="editPost(this)">
+									Sửa
+								</button>
+							</li>
 
-					        <li>
-					            <button class="dropdown-item"
-					                    type="button"
-					                    onclick="editPost(this)">
-					                Sửa
-					            </button>
-					        </li>
+							<li th:if="${session.USER.id == post.user.id}">
+								<button class="dropdown-item text-danger" type="button" onclick="deletePost(this)">
+									Xóa
+								</button>
+							</li>
 
-					        <li>
-					            <button class="dropdown-item text-danger"
-					                    type="button"
-					                    onclick="deletePost(this)">
-					                Xóa
-					            </button>
-					        </li>
+							<!-- Người khác -->
+							<li th:if="${session.USER.id != post.user.id}">
+								<button class="dropdown-item text-warning" type="button" onclick="reportPost(this)">
+									Báo cáo bài viết
+								</button>
+							</li>
 
-					    </ul>
+						</ul>
 
-					</div>-->
+					</div>
+
 				</div>
 
 
@@ -188,14 +203,22 @@
 						<span class="fw-bold" th:text="${post.user.name}">
 						</span>
 
-						<span th:text="${post.content}"></span>
+						<span class="post-content" th:text="${post.content}"></span>
 
 					</div>
 
 				</div>
 
 			</div>
+		</div>
+		<div class="text-center mb-4">
 
+			    <button class="btn btn-outline-primary"
+			            onclick="loadMore()">
+			        Load more
+			    </button>
+
+			</div>
 		</main>
 
 	</div>
@@ -207,37 +230,36 @@
 	<!-- ================== MODALS  ================== -->
 	<div th:replace="~{layout/modals :: modals}"></div>
 
+	
 
-	<script th:inline="javascript">
-		const contextPath = /*[[@{/}]]*/ '/';
-	</script>
-	<script th:src="@{/assets/js/like.js}"></script>
-	<script th:src="@{/assets/js/comment-modal.js}"></script>
+	<!--<script th:src="@{/assets/js/like.js}"></script>
+	<script th:src="@{/assets/js/comment-modal.js}"></script>-->
 	<script th:src="@{/assets/js/editDeltePost.js}"></script>
-	<script th:src="@{/assets/js/change-password.js}"></script>
+	<!--<script th:src="@{/assets/js/change-password.js}"></script>
 	<script th:src="@{/assets/js/toggleChangePassword.js}"></script>
-	<script th:src="@{/assets/js/follow.js}"></script>
+	<script th:src="@{/assets/js/follow.js}"></script>-->
 	<script th:src="@{/assets/js/previewImage.js}"></script>
+	<script th:src="@{/assets/js/loadFeed.js}"></script>
 	<script>
 
-			document.addEventListener("DOMContentLoaded", function () {
+		document.addEventListener("DOMContentLoaded", function () {
 
-				const successToast = document.getElementById("successToast");
-				const errorToast = document.getElementById("errorToast");
+			const successToast = document.getElementById("successToast");
+			const errorToast = document.getElementById("errorToast");
 
-				if (successToast) {
-					const toast = new bootstrap.Toast(successToast, {delay: 2000});
-					toast.show();
-				}
+			if (successToast) {
+				const toast = new bootstrap.Toast(successToast, {delay: 2000});
+				toast.show();
+			}
 
-				if (errorToast) {
-					const toast = new bootstrap.Toast(errorToast, {delay: 2000});
-					toast.show();
-				}
+			if (errorToast) {
+				const toast = new bootstrap.Toast(errorToast, {delay: 2000});
+				toast.show();
+			}
 
-			});
+		});
 
-		</script>
+	</script>
 </body>
 
 </html>

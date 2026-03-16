@@ -174,3 +174,139 @@ Sử dụng **DTO** cho dữ liệu từ:
 - **DataTransfer API**
 - **Bootstrap Carousel Events**
 - **Flexbox Layout**
+
+### 15/03
+
+- Hoàn thiện **Media Upload Validation** cho chức năng tạo bài viết
+
+#### File Validation
+- Chỉ cho phép upload **image / video hợp lệ**
+- Kiểm tra **MIME type** của file trước khi xử lý
+- Ngăn người dùng upload các file không phải media (ví dụ `.txt`)
+
+#### Validation Improvements
+- Thêm kiểm tra **content type** khi nhận file từ form
+- Nếu file không hợp lệ sẽ **từ chối upload và hiển thị thông báo lỗi**
+
+#### Kỹ thuật sử dụng
+- **Spring Boot MultipartFile**
+- **Content-Type Validation**
+- **Server-side Validation**
+
+##### NOTE
+- file.upload-dir=${user.dir}/uploads/
+user.dir là System Property của Java. ví dụ project nằm ở  D:\Learning\Khoa-Luan-Tot-Nghiep\socialnetwork thì  = với user.dir => upload sẽ nằm ở project/upload
+---
+
+### 16/03
+
+- Hoàn thiện **Post Header UI** và **Time Ago Display**
+
+#### Post Action Menu (Three Dots)
+- Thêm menu **⋯** cho mỗi bài đăng
+- Nếu là **chủ bài đăng**:
+  - Hiển thị **Sửa bài viết**
+  - Hiển thị **Xóa bài viết**
+- Nếu **không phải chủ bài đăng**:
+  - Hiển thị **Báo cáo bài viết**
+
+#### Post Header Layout
+- Căn chỉnh icon **three dots** sang góc phải
+- Sử dụng **Flexbox** để bố cục avatar, tên và action menu
+
+#### Time Ago Display
+- Hiển thị thời gian đăng bài dạng:
+  - `5 phút trước`
+  - `2 giờ trước`
+  - `1 ngày trước`
+- Tạo helper `TinhThoiGian.timeAgo()` để chuyển `createdAt` sang thời gian tương đối
+
+#### Delete Post
+Cho phép **chủ bài viết xóa bài đăng**.
+
+- Chỉ user tạo bài viết mới có quyền xóa
+- Sử dụng **POST request** để thực hiện xóa
+
+#### Delete Flow
+
+1. User nhấn **Xóa bài viết**
+2. JavaScript gửi request:
+
+POST /post/delete/{id}
+
+3. Server:
+- Kiểm tra **quyền sở hữu bài viết**
+- Xóa **media liên quan**
+- Xóa **bài viết trong database**
+
+#### Media Cleanup
+
+Khi xóa bài viết:
+- Xóa **file media trong thư mục uploads**
+- Xóa **record PostMedias trong database**
+
+- Hoàn thiện **Delete Post Without Page Reload (AJAX)**
+
+#### AJAX Delete
+
+Khi user xóa bài viết:
+- Không cần **reload toàn bộ trang**
+
+#### Flow
+
+User click delete  
+↓  
+JavaScript `fetch()`  
+↓  
+POST `/post/delete/{id}`  
+↓  
+Server xử lý  
+↓  
+JavaScript xóa post khỏi DOM
+
+#### DOM Manipulation
+
+Sau khi server xử lý xong: javascript btn.closest(".post").remove();
+- Hoàn thiện **Edit Post Functionality**
+
+#### Edit Post
+
+Cho phép **chủ bài viết chỉnh sửa nội dung bài đăng**.
+
+#### UI
+
+Sử dụng **Bootstrap Modal** để chỉnh sửa bài viết.
+
+Modal chứa:
+
+- `textarea` để chỉnh sửa nội dung
+
+#### User Flow
+
+Click **Sửa bài viết**  
+↓  
+Mở modal chỉnh sửa  
+↓  
+Chỉnh sửa nội dung  
+↓  
+Click **Lưu**  
+↓  
+POST `/post/edit/{id}`
+
+#### Server xử lý
+
+Controller:
+- Nhận `postId`
+- Nhận `content`
+- Lấy `USER` từ `Authentication`
+
+Service:
+- Kiểm tra **post tồn tại**
+- Kiểm tra **user có phải chủ bài viết**
+- Update nội dung bài viết
+##### NOTE
+-  th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}"> có nghĩa như ri T(...) là cú pháp của thằng thymleaf để gọi class trong java, gọi đc class thì sài như java thôi :V
+
+
+
+

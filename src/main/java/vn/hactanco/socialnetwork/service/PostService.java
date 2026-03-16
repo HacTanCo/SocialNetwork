@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -127,7 +130,55 @@ public class PostService {
 		postRepository.save(post);
 	}
 
-	public List<Post> getAllPosts() {
-		return postRepository.findFeedPosts();
+	public Page<Post> getFeed(int page, int size) {
+
+		Pageable pageable = PageRequest.of(page, size);
+
+		return postRepository.findAllByOrderByCreatedAtDesc(pageable);
+	}
+
+	public void deletePost(Long postId, User user) {
+
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new ResourceNotFoundException("Post không tồn tại"));
+		if (!post.getUser().getId().equals(user.getId())) {
+			throw new RuntimeException("Không có quyền xóa bài viết");
+		}
+		if (post.getMedias() != null) {
+			for (PostMedia media : post.getMedias()) {
+
+				String mediaPath = media.getMediaUrl();
+				// ví dụ: /uploads/images/abc.jpg
+
+				String filePath = uploadDir + mediaPath.replace("/uploads/", "");
+
+				File file = new File(filePath);
+
+				if (file.exists()) {
+					file.delete();
+				}
+			}
+		}
+		postRepository.delete(post);
+	}
+
+	public void updatePost(Long postId, String content, User user) {
+
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new ResourceNotFoundException("Post không tồn tại"));
+
+		// kiểm tra quyền
+		if (!post.getUser().getId().equals(user.getId())) {
+			throw new RuntimeException("Không có quyền sửa bài viết");
+		}
+
+		// validate content
+		if (content == null || content.trim().isEmpty()) {
+			throw new ResourceNotFoundException("Nội dung bài viết không được để trống");
+		}
+
+		post.setContent(content.trim());
+
+		postRepository.save(post);
 	}
 }

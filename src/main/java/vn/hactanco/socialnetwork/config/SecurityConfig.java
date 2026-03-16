@@ -67,6 +67,7 @@ public class SecurityConfig {
 				 .maxSessionsPreventsLogin(false)
 				 .expiredUrl("/login?expire"));
 		 http.rememberMe(r -> r.rememberMeServices(rememberMeServices()));
+//		 http.csrf(c -> c.disable());
 		return http.build();
 	}
 }
