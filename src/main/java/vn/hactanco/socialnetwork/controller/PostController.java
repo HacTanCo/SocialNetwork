@@ -1,8 +1,8 @@
 package vn.hactanco.socialnetwork.controller;
 
 import java.io.IOException;
+import java.util.List;
 
-import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -16,8 +16,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import vn.hactanco.socialnetwork.dto.PostResponseDTO;
 import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
-import vn.hactanco.socialnetwork.model.Post;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.service.PostService;
 import vn.hactanco.socialnetwork.service.UserService;
@@ -53,11 +53,9 @@ public class PostController {
 			session.setAttribute("USER", user);
 		}
 
-		Page<Post> postPage = postService.getFeed(page, 10);
+		List<PostResponseDTO> posts = postService.getFeedDTO(page, 10);
 
-		model.addAttribute("posts", postPage.getContent());
-		model.addAttribute("currentPage", page);
-		model.addAttribute("totalPages", postPage.getTotalPages());
+		model.addAttribute("posts", posts);
 
 		return "home";
 	}
@@ -97,15 +95,15 @@ public class PostController {
 	}
 
 	@PostMapping("/post/update/{id}")
-	public String editPost(@PathVariable Long id, @RequestParam String content, Authentication authentication,
+	public String editPost(@PathVariable Long id, @RequestParam String content,
+			@RequestParam(required = false) MultipartFile[] files, Authentication authentication,
 			RedirectAttributes redirectAttributes) {
 
 		try {
 
-			String email = authentication.getName();
-			User user = userService.findUserByEmail(email);
+			User user = userService.findUserByEmail(authentication.getName());
 
-			postService.updatePost(id, content, user);
+			postService.updatePost(id, content, files, user);
 
 			redirectAttributes.addFlashAttribute("success", "Cập nhật bài viết thành công");
 

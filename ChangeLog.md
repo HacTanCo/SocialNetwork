@@ -308,5 +308,18 @@ Service:
 -  th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}"> có nghĩa như ri T(...) là cú pháp của thằng thymleaf để gọi class trong java, gọi đc class thì sài như java thôi :V
 
 
+###### Ở trên này có nhờ AI viết
 
+### 17/03
+
+#### Sửa lại lại Post tránh N+1 query bằng DTO và 2 query
+
+1. select 2 lần
+ - đầu tiên lấy tất cả id các bài post
+ - tiếp theo lấy toàn bộ thông tin các bài post như users.* và medias.*
+    + Trước khi sửa nếu lấy 10 post thì sẽ chạy 13 query: 1 query là post, 1 query user, 1 query là đếm số post để phân trang, và 10 query để lấy medias
+    ( cái này k nhớ chính xác lắm, sửa lại quên note :V )
+    + Sau chỉ cần 3 query: 1 query là lấy id post (trong bài lấy 10), 1 query là đếm số post để phân trang, query còn lại để lấy các thông tin liên quan tới post như user, post, media
+
+2. sử dụng Builder của lombook cho đỡ ghi kiểu new ra 1 đối tượng rồi set data mệt
 

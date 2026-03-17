@@ -11,6 +11,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 	<link rel="stylesheet" th:href="@{/assets/css/instagram-layout.css}">
+	<link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
 </head>
 
 <body>
@@ -67,7 +68,7 @@
 			
 			<div id="feed">
 			<!-- POSTS -->
-			<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white" th:attr="data-post-id=${post.id}">
+			<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white" th:attr="data-post-id=${post.postId}">
 
 				<!-- HEADER -->
 				<div class="d-flex justify-content-between align-items-center p-3 border-bottom">
@@ -75,12 +76,12 @@
 					<!-- Bên trái: avatar + tên + thời gian -->
 					<div class="d-flex align-items-center">
 
-						<img th:src="@{${post.user.avatar}}" class="rounded-circle me-2"
+						<img th:src="@{${post.userAvatar}}" class="rounded-circle me-2"
 							style="width:40px;height:40px;">
 
 						<div>
 
-							<div class="fw-bold" th:text="${post.user.name}"></div>
+							<div class="fw-bold" th:text="${post.userName}"></div>
 
 							<small class="text-muted"
 								th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
@@ -101,20 +102,20 @@
 							style="border: 1px solid #dbdbdb; border-radius: 8px;">
 
 							<!-- Chủ bài -->
-							<li th:if="${session.USER.id == post.user.id}">
+							<li th:if="${session.USER.id == post.userId}">
 								<button class="dropdown-item" type="button" onclick="editPost(this)">
 									Sửa
 								</button>
 							</li>
 
-							<li th:if="${session.USER.id == post.user.id}">
+							<li th:if="${session.USER.id == post.userId}">
 								<button class="dropdown-item text-danger" type="button" onclick="deletePost(this)">
 									Xóa
 								</button>
 							</li>
 
 							<!-- Người khác -->
-							<li th:if="${session.USER.id != post.user.id}">
+							<li th:if="${session.USER.id != post.userId}">
 								<button class="dropdown-item text-warning" type="button" onclick="reportPost(this)">
 									Báo cáo bài viết
 								</button>
@@ -143,7 +144,7 @@
 
 
 					<!-- MULTIPLE MEDIA -->
-					<div th:if="${#lists.size(post.medias) > 1}" th:id="'carousel-' + ${post.id}"
+					<div th:if="${#lists.size(post.medias) > 1}" th:id="'carousel-' + ${post.postId}"
 						class="carousel slide">
 
 						<div class="carousel-inner">
@@ -167,14 +168,14 @@
 
 
 						<button class="carousel-control-prev" type="button"
-							th:data-bs-target="'#carousel-' + ${post.id}" data-bs-slide="prev">
+							th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="prev">
 
 							<span class="carousel-control-prev-icon"></span>
 
 						</button>
 
 						<button class="carousel-control-next" type="button"
-							th:data-bs-target="'#carousel-' + ${post.id}" data-bs-slide="next">
+							th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="next">
 
 							<span class="carousel-control-next-icon"></span>
 
@@ -200,7 +201,7 @@
 
 					<div>
 
-						<span class="fw-bold" th:text="${post.user.name}">
+						<span class="fw-bold" th:text="${post.userName}">
 						</span>
 
 						<span class="post-content" th:text="${post.content}"></span>
