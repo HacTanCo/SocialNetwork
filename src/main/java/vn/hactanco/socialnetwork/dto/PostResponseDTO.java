@@ -23,4 +23,7 @@ public class PostResponseDTO {
 	private String userName;
 	private String userAvatar;
 	private List<PostMediaResponseDTO> medias;
+
+	private boolean liked;
+	private long likeCount;
 }

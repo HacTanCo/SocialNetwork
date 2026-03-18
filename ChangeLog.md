@@ -323,3 +323,12 @@ Service:
 
 2. sử dụng Builder của lombook cho đỡ ghi kiểu new ra 1 đối tượng rồi set data mệt
 
+
+#### Thêm like bài post
+
+##### Note 1 số hàm
+ - dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0L)); :
+  getOrDefault: Lấy value theo key, nếu key không tồn tại thì trả về giá trị mặc định
+- dto.setLiked(likedPostIds.contains(post.getId())); :
+  contains: Kiểm tra xem phần tử có tồn tại trong List (hoặc Set) không
+			

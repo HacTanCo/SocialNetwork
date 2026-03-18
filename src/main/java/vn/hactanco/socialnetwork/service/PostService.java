@@ -23,6 +23,7 @@ import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
 import vn.hactanco.socialnetwork.model.Post;
 import vn.hactanco.socialnetwork.model.PostMedia;
 import vn.hactanco.socialnetwork.model.User;
+import vn.hactanco.socialnetwork.repository.LikeRepository;
 import vn.hactanco.socialnetwork.repository.PostRepository;
 
 @Service
@@ -30,7 +31,7 @@ import vn.hactanco.socialnetwork.repository.PostRepository;
 public class PostService {
 
 	private final PostRepository postRepository;
-
+	private final LikeRepository likeRepository;
 	@Value("${file.upload-dir}")
 	private String uploadDir;
 
@@ -152,19 +153,41 @@ public class PostService {
 				.userAvatar(post.getUser().getAvatar()).medias(mediaDTOS).build();
 	}
 
-	public List<PostResponseDTO> getFeedDTO(int page, int size) {
+	public List<PostResponseDTO> getFeedDTO(int page, int size, User currentUser) {
 
 		Pageable pageable = PageRequest.of(page, size);
 
+		// 1. lấy id trước (tránh N+1)
 		Page<Long> postIdsPage = postRepository.findPostIds(pageable);
 		List<Long> ids = postIdsPage.getContent();
-		List<Post> posts = postRepository.findByIdInWithUserAndMedia(ids);
-		// map lại theo id
-		Map<Long, Post> map = posts.stream().collect(Collectors.toMap(Post::getId, p -> p));
-		// giữ đúng thứ tự từ query 1 (DESC)
-		List<Post> sortedPosts = ids.stream().map(map::get).toList();
-		return sortedPosts.stream().map(this::convertToDTO).toList();
 
+		// 2. fetch post + user + media
+		List<Post> posts = postRepository.findByIdInWithUserAndMedia(ids);
+
+		Map<Long, Post> map = posts.stream().collect(Collectors.toMap(Post::getId, p -> p));
+
+		List<Post> sortedPosts = ids.stream().map(map::get).toList();
+
+		// 🔥 3. COUNT LIKE (1 query)
+		Map<Long, Long> likeCountMap = likeRepository.countLikesByPostIds(ids).stream()
+				.collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+		// 🔥 4. USER ĐÃ LIKE (1 query)
+		List<Long> likedPostIds = likeRepository.findLikedPostIds(currentUser.getId(), ids);
+
+		// 5. map DTO
+		return sortedPosts.stream().map(post -> {
+
+			PostResponseDTO dto = convertToDTO(post);
+			// getOrDefault: Lấy value theo key, nếu key không tồn tại thì trả về giá trị
+			// mặc định
+			dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0L));
+			// contains: Kiểm tra xem phần tử có tồn tại trong List (hoặc Set) không
+			dto.setLiked(likedPostIds.contains(post.getId()));
+
+			return dto;
+
+		}).toList();
 	}
 
 //	public Page<Post> getFeed(int page, int size) {
@@ -219,76 +242,7 @@ public class PostService {
 		postRepository.save(post);
 	}
 
-	public void updatePost(Long postId, String content, MultipartFile[] files, User user) throws IOException {
-
-		Post post = postRepository.findById(postId)
-				.orElseThrow(() -> new ResourceNotFoundException("Post không tồn tại"));
-
-		if (!post.getUser().getId().equals(user.getId())) {
-			throw new RuntimeException("Không có quyền sửa bài viết");
-		}
-
-		// update content
-		if (content == null || content.trim().isEmpty()) {
-			throw new ResourceNotFoundException("Nội dung không được trống");
-		}
-
-		post.setContent(content.trim());
-
-		// 👉 nếu có upload file mới → xóa media cũ + thêm mới
-		if (files != null && files.length > 0 && !files[0].isEmpty()) {
-
-			// XÓA FILE CŨ
-			if (post.getMedias() != null) {
-				for (PostMedia media : post.getMedias()) {
-					String filePath = uploadDir + media.getMediaUrl().replace("/uploads/", "");
-					new File(filePath).delete();
-				}
-			}
-
-			List<PostMedia> newMedias = new ArrayList<>();
-
-			for (MultipartFile file : files) {
-
-				if (file.isEmpty())
-					continue;
-
-				String originalName = file.getOriginalFilename();
-				String extension = originalName.substring(originalName.lastIndexOf(".") + 1).toLowerCase();
-
-				List<String> imageExt = List.of("jpg", "jpeg", "png", "gif", "webp");
-				List<String> videoExt = List.of("mp4", "mov", "avi", "webm");
-
-				boolean isImage = imageExt.contains(extension);
-				boolean isVideo = videoExt.contains(extension);
-
-				String fileName = UUID.randomUUID() + "_" + originalName;
-
-				File dest;
-				String mediaUrl;
-
-				if (isImage) {
-					dest = new File(uploadDir + "images/", fileName);
-					mediaUrl = "/uploads/images/" + fileName;
-				} else {
-					dest = new File(uploadDir + "videos/", fileName);
-					mediaUrl = "/uploads/videos/" + fileName;
-				}
-
-				file.transferTo(dest);
-
-				PostMedia media = new PostMedia();
-				media.setMediaUrl(mediaUrl);
-				media.setMediaType(isImage ? MediaType.IMAGE : MediaType.VIDEO);
-				media.setPost(post);
-
-				newMedias.add(media);
-			}
-
-			post.setMedias(newMedias);
-		}
-
-		postRepository.save(post);
+	public Post findById(Long id) {
+		return postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post không tồn tại"));
 	}
-
 }

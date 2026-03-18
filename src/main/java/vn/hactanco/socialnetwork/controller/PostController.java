@@ -48,12 +48,12 @@ public class PostController {
 	@GetMapping("/home")
 	public String homePage(Model model, HttpSession session, Authentication authentication,
 			@RequestParam(defaultValue = "0") int page) {
+		User user = userService.findUserByEmail(authentication.getName());
 		if (session.getAttribute("USER") == null) {
-			User user = userService.findUserByEmail(authentication.getName());
+
 			session.setAttribute("USER", user);
 		}
-
-		List<PostResponseDTO> posts = postService.getFeedDTO(page, 10);
+		List<PostResponseDTO> posts = postService.getFeedDTO(page, 10, user);
 
 		model.addAttribute("posts", posts);
 
@@ -95,15 +95,14 @@ public class PostController {
 	}
 
 	@PostMapping("/post/update/{id}")
-	public String editPost(@PathVariable Long id, @RequestParam String content,
-			@RequestParam(required = false) MultipartFile[] files, Authentication authentication,
+	public String editPost(@PathVariable Long id, @RequestParam String content, Authentication authentication,
 			RedirectAttributes redirectAttributes) {
 
 		try {
 
 			User user = userService.findUserByEmail(authentication.getName());
 
-			postService.updatePost(id, content, files, user);
+			postService.updatePost(id, content, user);
 
 			redirectAttributes.addFlashAttribute("success", "Cập nhật bài viết thành công");
 

@@ -43,6 +43,9 @@ public class Post {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<PostMedia> medias;
 
+	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+	private List<Like> likes;
+
 	@PrePersist
 	public void prePersist() {
 		this.createdAt = Instant.now();
