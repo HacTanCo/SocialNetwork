@@ -96,52 +96,50 @@
 			</div>
 		</div>
 	</div>
-
+	
 	<!-- Comment Modal -->
 	<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="commentModalLabel">Bình luận</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
+	    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="commentModalLabel">Bình luận</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
 
-				<div class="modal-body">
-					<div id="modal-comment-list"></div>
-				</div>
+	            <div class="modal-body">
+	                <!-- Comment list sẽ render vào đây -->
+	                <div id="modal-comment-list"></div>
+	            </div>
 
-				<div class="modal-footer">
-					<div class="d-flex w-100 gap-2 align-items-center">
-						<input type="text" id="modal-comment-input" class="form-control"
-							placeholder="Viết bình luận...">
-						<button class="btn btn-primary px-3" onclick="submitModalComment()">Gửi</button>
-					</div>
-				</div>
-			</div>
-		</div>
+	            <div class="modal-footer">
+	                <div class="d-flex w-100 gap-2 align-items-center">
+	                    <input type="text" id="modal-comment-input" class="form-control"
+	                           placeholder="Viết bình luận...">
+	                    <button class="btn btn-primary px-3" onclick="submitModalComment()">Gửi</button>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
 	</div>
-
-	<!-- Edit Post Modal -->
-	<div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="editPostModalLabel">Sửa bài viết</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-
-				<div class="modal-body">
-					<textarea id="editPostContent" class="form-control" rows="4"></textarea>
-					<input type="hidden" id="editPostId">
-				</div>
-
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-					<button type="button" class="btn btn-primary" onclick="submitEditPost()">Lưu</button>
-				</div>
-			</div>
-		</div>
+	<!-- Edit Comment Modal -->
+	<div class="modal fade" id="editCommentModal" tabindex="-1" aria-labelledby="editCommentModalLabel" aria-hidden="true">
+	    <div class="modal-dialog modal-dialog-centered">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="editCommentModalLabel">Sửa bình luận</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <input type="hidden" id="editCommentId">
+	                <textarea id="editCommentContent" class="form-control" rows="3"></textarea>
+	            </div>
+	            <div class="modal-footer">
+	                <button class="btn btn-primary" onclick="submitEditComment()">Cập nhật</button>
+	            </div>
+	        </div>
+	    </div>
 	</div>
+	
 
 	<!-- Change Password Modal -->
 	<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel"

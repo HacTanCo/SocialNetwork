@@ -1,0 +1,166 @@
+package vn.hactanco.socialnetwork.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import vn.hactanco.socialnetwork.dto.CommentResponseDTO;
+import vn.hactanco.socialnetwork.model.Comment;
+import vn.hactanco.socialnetwork.model.User;
+import vn.hactanco.socialnetwork.service.CommentService;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/comment")
+public class CommentController {
+
+	private final CommentService commentService;
+
+//	@GetMapping("/post/{postId}")
+//	public List<Map<String, Object>> getComments(@PathVariable Long postId, HttpSession session) {
+//		User user = (User) session.getAttribute("USER");
+//		List<Map<String, Object>> comments = commentService.getCommentsByPostId(postId);
+//		if (user != null) {
+//			comments.forEach(c -> c.put("isOwner", c.get("userId").equals(user.getId())));
+//		}
+//		return comments;
+//	}
+
+//	@PostMapping("/create")
+//	public Map<String, Object> createComment(@RequestBody Map<String, Object> body, HttpSession session) {
+//		User user = (User) session.getAttribute("USER");
+//		if (user == null)
+//			return Map.of("success", false, "message", "Bạn chưa đăng nhập");
+//
+//		Long postId = Long.valueOf(body.get("postId").toString());
+//		String content = body.get("content").toString();
+//
+//		Map<String, Object> commentMap = commentService.createComment(postId, content, user);
+//		return Map.of("success", true, "comment", commentMap);
+//	}
+	@PostMapping("/create")
+	public Map<String, Object> createComment(@RequestBody Map<String, Object> body, HttpSession session) {
+
+		User user = (User) session.getAttribute("USER");
+		if (user == null) {
+			return Map.of("success", false, "message", "Chưa đăng nhập");
+		}
+
+		Long postId = Long.valueOf(body.get("postId").toString());
+		String content = body.get("content").toString();
+
+		Comment comment = commentService.createComment(postId, content, user);
+
+		return Map.of("success", true, "commentId", comment.getId(), "content", comment.getContent(), "userName",
+				user.getName(), "userAvatar", user.getAvatar());
+	}
+
+	@GetMapping("/post/{postId}")
+	public List<CommentResponseDTO> getComments(@PathVariable Long postId, HttpSession session) {
+
+		User user = (User) session.getAttribute("USER");
+		Long userId = user != null ? user.getId() : null;
+
+		return commentService.getComments(postId, userId);
+	}
+
+	@PostMapping("/reply")
+	public Map<String, Object> replyComment(@RequestBody Map<String, Object> body, HttpSession session) {
+
+		User user = (User) session.getAttribute("USER");
+		if (user == null) {
+			return Map.of("success", false, "message", "Chưa đăng nhập");
+		}
+
+		Long postId = Long.valueOf(body.get("postId").toString());
+		Long parentId = Long.valueOf(body.get("commentId").toString());
+		String content = body.get("content").toString();
+
+		commentService.replyComment(postId, parentId, content, user);
+
+		return Map.of("success", true);
+	}
+
+	@PostMapping("/update")
+	public Map<String, Object> updateComment(@RequestBody Map<String, Object> body, HttpSession session) {
+
+		User user = (User) session.getAttribute("USER");
+		if (user == null) {
+			return Map.of("success", false);
+		}
+
+		Long commentId = Long.valueOf(body.get("commentId").toString());
+		String content = body.get("content").toString();
+
+		boolean updated = commentService.updateComment(commentId, content, user);
+
+		return Map.of("success", updated);
+	}
+
+	@PostMapping("/delete")
+	public Map<String, Object> deleteComment(@RequestBody Map<String, Object> body, HttpSession session) {
+
+		User user = (User) session.getAttribute("USER");
+		if (user == null) {
+			return Map.of("success", false);
+		}
+
+		Long commentId = Long.valueOf(body.get("commentId").toString());
+
+		boolean deleted = commentService.deleteComment(commentId, user);
+
+		return Map.of("success", deleted);
+	}
+//	@PostMapping("/reply")
+//	public Map<String, Object> replyComment(@RequestBody Map<String, Object> body, HttpSession session) {
+//		User user = (User) session.getAttribute("USER");
+//		if (user == null)
+//			return Map.of("success", false, "message", "Bạn chưa đăng nhập");
+//
+//		Long postId = Long.valueOf(body.get("postId").toString());
+//		Long parentId = Long.valueOf(body.get("commentId").toString());
+//		String content = body.get("content").toString();
+//
+//		Map<String, Object> replyMap = commentService.replyComment(postId, parentId, content, user);
+//		return Map.of("success", true, "comment", replyMap);
+//	}
+
+	// Sửa comment
+//	@PostMapping("/update")
+//	public Map<String, Object> updateComment(@RequestBody Map<String, Object> body, HttpSession session) {
+//		User user = (User) session.getAttribute("USER");
+//		if (user == null)
+//			return Map.of("success", false, "message", "Bạn chưa đăng nhập");
+//
+//		Long commentId = Long.valueOf(body.get("commentId").toString());
+//		String newContent = body.get("content").toString();
+//
+//		return commentService.updateComment(commentId, newContent, user)
+//				.map(commentMap -> Map.of("success", true, "comment", commentMap))
+//				.orElse(Map.of("success", false, "message", "Không thể sửa comment"));
+//	}
+
+	// Xóa comment
+//	@PostMapping("/delete")
+//	public Map<String, Object> deleteComment(@RequestBody Map<String, Object> body, HttpSession session) {
+//		User user = (User) session.getAttribute("USER");
+//		if (user == null)
+//			return Map.of("success", false, "message", "Bạn chưa đăng nhập");
+//
+//		Long commentId = Long.valueOf(body.get("commentId").toString());
+//		boolean deleted = commentService.deleteComment(commentId, user);
+//
+//		if (deleted)
+//			return Map.of("success", true);
+//		else
+//			return Map.of("success", false, "message", "Không thể xóa comment");
+//	}
+}

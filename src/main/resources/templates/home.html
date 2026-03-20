@@ -189,27 +189,28 @@
 				<!-- ACTION -->
 				<div class="p-3">
 
-				    <div class="d-flex gap-3 mb-2">
+				    <div class="d-flex gap-3 mb-2 align-items-center">
 
 				        <!-- LIKE -->
-				        <i class="bi fs-5"
-				           th:classappend="${post.liked} ? 'bi-heart-fill text-danger' : 'bi-heart'"
-				           th:onclick="'likePost(this, ' + ${post.postId} + ')'">
-				        </i>
+				        <div class="d-flex align-items-center gap-1">
+				            <i class="bi fs-5"
+				               th:classappend="${post.liked} ? 'bi-heart-fill text-danger' : 'bi-heart'"
+				               th:onclick="'likePost(this, ' + ${post.postId} + ')'">
+				            </i>
+				            <span th:id="'like-count-' + ${post.postId}" th:text="${post.likeCount}">0</span>
+				        </div>
 
 				        <!-- COMMENT -->
-				        <i class="bi bi-chat fs-5"></i>
+				        <i class="bi bi-chat fs-5"
+				           th:onclick="'openCommentModal(' + ${post.postId} + ')'">
+				        </i>
 
 				        <!-- SHARE -->
 				        <i class="bi bi-send fs-5"></i>
 
+				        <!-- BOOKMARK -->
 				        <i class="bi bi-bookmark ms-auto fs-5"></i>
-				    </div>
 
-				    <!-- LIKE COUNT -->
-				    <div class="mt-1">
-						<span th:id="'like-count-' + ${post.postId}"
-						      th:text="${post.likeCount}">0</span>
 				    </div>
 
 				    <!-- CONTENT -->
@@ -244,7 +245,7 @@
 	
 
 	<script th:src="@{/assets/js/like.js}"></script>
-	<!--<script th:src="@{/assets/js/comment-modal.js}"></script>-->
+	<script th:src="@{/assets/js/commentModal.js}"></script>
 	<script th:src="@{/assets/js/editDeltePost.js}"></script>
 	<!--<script th:src="@{/assets/js/change-password.js}"></script>
 	<script th:src="@{/assets/js/toggleChangePassword.js}"></script>

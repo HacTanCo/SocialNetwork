@@ -332,3 +332,12 @@ Service:
 - dto.setLiked(likedPostIds.contains(post.getId())); :
   contains: Kiểm tra xem phần tử có tồn tại trong List (hoặc Set) không
 			
+### 19/03
+
+#### Hoàn thiện comment nhưng cần chỉnh sửa lại cho phù hợp
+
+1. hoàn thiện CRUD
+2. cần chỉnh sửa UI lại cho phù hợp
+
+#### đã hoàn thiện UI 
+
