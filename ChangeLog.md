@@ -341,3 +341,8 @@ Service:
 
 #### đã hoàn thiện UI 
 
+### 24/03
+
+#### Note
+- @Modifying: cho phép query thay đổi dữ liệu ( update/delete )
+

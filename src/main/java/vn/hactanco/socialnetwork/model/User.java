@@ -68,4 +68,14 @@ public class User implements Serializable {
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Like> likes;
+
+	@OneToMany(mappedBy = "follower")
+	private List<Friendship> followingList;
+
+	@OneToMany(mappedBy = "following")
+	private List<Friendship> followerList;
+
+	public User(Long id) {
+		this.id = id;
+	}
 }

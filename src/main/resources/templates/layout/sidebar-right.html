@@ -3,7 +3,7 @@
 
 <aside class="sidebar-right d-none d-xl-block" th:fragment="sidebar-right">
 		<div class="d-flex align-items-center p-3 border-bottom" style="border-color:#dbdbdb;">
-			<img th:src="@{${session.USER.avatar}}" class="rounded-circle me-3"
+			<img th:src="${session.USER.avatar}" class="rounded-circle me-3"
 				style="width:44px;height:44px;">
 			<div class="fw-bold" th:text="${session.USER.name}"></div>
 		</div>
@@ -15,37 +15,45 @@
 			</div>
 
 			<div th:each="sug : ${suggestions}" class="d-flex align-items-center mb-1">
-				<img th:src="@{${sug.avatar != null ? sug.avatar : '/assets/images/default-avatar.jpg'}}"
+				<img th:src="${sug.avatar}"
 					class="rounded-circle me-2" style="width:44px;height:44px;">
 				<div class="flex-grow-1">
-					<div class="fw-bold small" th:text="${sug.fullName}"></div>
+					<div class="fw-bold small" th:text="${sug.name}"></div>
 				</div>
-				<button class="btn btn-outline-secondary btn-sm" th:onclick="'toggleFollow(this, ' + ${sug.id} + ')'">
-					Theo dõi
+				<button class="btn btn-outline-secondary btn-sm" th:onclick="'toggleFollow(this, ' + ${sug.userId} + ')'">
+					Kết bạn
 				</button>
 			</div>
 		</div>
 
 		<!-- Footer -->
 		<footer th:fragment="footer">
-		    <div class="footer-links text-center text-muted small">
-		        <div style="background:#eee;" class="p-2">
-		            <div class="d-flex justify-content-center gap-2 flex-wrap">
-		                <a href="https://www.facebook.com/Turquois6" target="_blank" class="text-muted text-decoration-none">Giới thiệu</a>
-		                <a href="https://www.facebook.com/Turquois6" target="_blank" class="text-muted text-decoration-none">Blog</a>
-		                <a href="https://www.facebook.com/Turquois6" target="_blank" class="text-muted text-decoration-none">Nhân viên</a>
-		                <a href="https://www.facebook.com/Turquois6" target="_blank" class="text-muted text-decoration-none">Ứng dụng</a>
-		                <a href="https://www.facebook.com/Turquois6" target="_blank" class="text-muted text-decoration-none">Công việc</a>
-		                <a href="https://www.facebook.com/Turquois6" target="_blank" class="text-muted text-decoration-none">Pháp lý</a>
-		            </div>
-
-		            <div class="mt-1">
-		                <small>
-		                    <i class="bi bi-instagram me-1"></i>
-		                    Instagram © 2025 · <strong>HacTanCo</strong>
-		                </small>
-		            </div>
+		    <div style="background:#eee;" class="p-3">
+		        
+		        <!-- Phần các link - căn giữa hoàn toàn -->
+		        <div class="d-flex justify-content-center gap-3 flex-wrap mb-2">
+		            <a href="https://www.facebook.com/Turquois6" target="_blank" 
+		               class="text-muted text-decoration-none">Giới thiệu</a>
+		            <a href="https://www.facebook.com/Turquois6" target="_blank" 
+		               class="text-muted text-decoration-none">Blog</a>
+		            <a href="https://www.facebook.com/Turquois6" target="_blank" 
+		               class="text-muted text-decoration-none">Nhân viên</a>
+		            <a href="https://www.facebook.com/Turquois6" target="_blank" 
+		               class="text-muted text-decoration-none">Ứng dụng</a>
+		            <a href="https://www.facebook.com/Turquois6" target="_blank" 
+		               class="text-muted text-decoration-none">Công việc</a>
+		            <a href="https://www.facebook.com/Turquois6" target="_blank" 
+		               class="text-muted text-decoration-none">Pháp lý</a>
 		        </div>
+
+		        <!-- Phần bản quyền - cũng căn giữa -->
+		        <div class="text-center">
+		            <small class="text-muted">
+		                <i class="bi bi-instagram me-1"></i>
+		                Instagram © 2025 · <strong>HacTanCo</strong>
+		            </small>
+		        </div>
+
 		    </div>
 		</footer>
 	</aside>

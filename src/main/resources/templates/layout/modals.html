@@ -96,7 +96,27 @@
 			</div>
 		</div>
 	</div>
-	
+	<!-- Edit Post Modal -->
+		<div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="editPostModalLabel">Sửa bài viết</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+
+					<div class="modal-body">
+						<textarea id="editPostContent" class="form-control" rows="4"></textarea>
+						<input type="hidden" id="editPostId">
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+						<button type="button" class="btn btn-primary" onclick="submitEditPost()">Lưu</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	<!-- Comment Modal -->
 	<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
 	    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">

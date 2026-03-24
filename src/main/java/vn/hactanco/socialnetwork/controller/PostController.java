@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import vn.hactanco.socialnetwork.dto.PostResponseDTO;
 import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
 import vn.hactanco.socialnetwork.model.User;
+import vn.hactanco.socialnetwork.service.FriendshipService;
 import vn.hactanco.socialnetwork.service.PostService;
 import vn.hactanco.socialnetwork.service.UserService;
 
@@ -27,6 +28,7 @@ import vn.hactanco.socialnetwork.service.UserService;
 public class PostController {
 	private final PostService postService;
 	private final UserService userService;
+	private final FriendshipService friendshipService;
 
 	@GetMapping("/")
 	public String root(Authentication authentication) {
@@ -56,6 +58,7 @@ public class PostController {
 		List<PostResponseDTO> posts = postService.getFeedDTO(page, 10, user);
 
 		model.addAttribute("posts", posts);
+		model.addAttribute("suggestions", this.friendshipService.getSuggestions(user.getId()));
 
 		return "home";
 	}
