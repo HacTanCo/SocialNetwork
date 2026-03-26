@@ -6,10 +6,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model; // ✅ ĐÚNG
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import vn.hactanco.socialnetwork.dto.PostResponseDTO;
+import vn.hactanco.socialnetwork.dto.UserProfileDTO;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.service.FriendshipService;
 import vn.hactanco.socialnetwork.service.PostService;
@@ -43,5 +45,11 @@ public class UserController {
 		model.addAttribute("suggestions", this.friendshipService.getSuggestions(currentUser.getId()));
 		System.out.println(profileUser.toString());
 		return "profile/profile";
+	}
+
+	@GetMapping("/api/user/{id}")
+	@ResponseBody
+	public UserProfileDTO getUserProfile(@PathVariable Long id) {
+		return userService.getProfileDTO(id);
 	}
 }

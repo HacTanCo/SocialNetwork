@@ -15,6 +15,7 @@
 </head>
 
 <body>
+	<div id="profilePopup" class="profile-popup d-none"></div>
 	<!-- TOAST MESSAGE -->
 	<div class="toast-container position-fixed top-0 end-0 p-3">
 
@@ -77,9 +78,10 @@
 					<a th:href="@{/profile/{id}(id=${post.userId})}" 
 					   class="d-flex align-items-center text-decoration-none text-dark">
 
-					    <img th:src="@{${post.userAvatar}}" 
-					         class="rounded-circle me-2"
-					         style="width:40px;height:40px;">
+					   <img th:src="@{${post.userAvatar}}" 
+					        class="rounded-circle me-2 user-avatar"
+					        th:attr="data-user-id=${post.userId}"
+					        style="width:40px;height:40px;">
 
 					    <div>
 
@@ -253,7 +255,7 @@
 	<div th:replace="~{layout/modals :: modals}"></div>
 
 	
-
+	<script th:src="@{/assets/js/popupProfile.js}"></script>
 	<script th:src="@{/assets/js/like.js}"></script>
 	<script th:src="@{/assets/js/commentModal.js}"></script>
 	<script th:src="@{/assets/js/editDeltePost.js}"></script>
@@ -282,6 +284,7 @@
 		});
 
 	</script>
+	
 </body>
 
 </html>

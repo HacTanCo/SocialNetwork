@@ -33,4 +33,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			    ORDER BY p.createdAt DESC
 			""")
 	Page<Long> findPostIdsByUser(Long userId, Pageable pageable);
+
+	long countByUser_Id(Long userId);
 }
