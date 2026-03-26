@@ -21,12 +21,20 @@ function submitModalComment() {
         },
         body: JSON.stringify({ postId: currentPostId, content })
     }).then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('modal-comment-input').value = '';
-                loadComments(currentPostId);
-            }
-        });
+	.then(data => {
+		if (data.success) {
+		    document.getElementById('modal-comment-input').value = '';
+		    loadComments(currentPostId);
+
+		    const el = document.querySelector(
+		        `.comment-count[data-post-id="${currentPostId}"]`
+		    );
+
+		    if (el) {
+		        el.innerText = data.commentCount; // 👈 dùng data từ server
+		    }
+		}
+	});
 }
 function loadComments(postId) {
     fetch(`/comment/post/${postId}`)
@@ -216,10 +224,18 @@ function submitReply(commentId, btn) {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            input.value = '';
-            loadComments(currentPostId); // reload lại list
-        }
+		if (data.success) {
+		    input.value = '';
+		    loadComments(currentPostId);
+
+		    const el = document.querySelector(
+		        `.comment-count[data-post-id="${currentPostId}"]`
+		    );
+
+		    if (el) {
+		        el.innerText = data.commentCount;
+		    }
+		}
     });
 }
 function toggleReplyInput(commentId) {
@@ -268,9 +284,17 @@ function deleteComment(commentId) {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            loadComments(currentPostId);
-        }
+		if (data.success) {
+		    loadComments(currentPostId);
+
+		    const el = document.querySelector(
+		        `.comment-count[data-post-id="${currentPostId}"]`
+		    );
+
+		    if (el) {
+		        el.innerText = data.commentCount;
+		    }
+		}
     });
 }
 function startEdit(id) {

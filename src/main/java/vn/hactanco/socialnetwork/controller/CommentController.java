@@ -59,8 +59,10 @@ public class CommentController {
 
 		Comment comment = commentService.createComment(postId, content, user);
 
+		long newCount = commentService.countByPostId(postId);
+
 		return Map.of("success", true, "commentId", comment.getId(), "content", comment.getContent(), "userName",
-				user.getName(), "userAvatar", user.getAvatar());
+				user.getName(), "userAvatar", user.getAvatar(), "commentCount", newCount);
 	}
 
 	@GetMapping("/post/{postId}")
@@ -85,8 +87,8 @@ public class CommentController {
 		String content = body.get("content").toString();
 
 		commentService.replyComment(postId, parentId, content, user);
-
-		return Map.of("success", true);
+		long newCount = commentService.countByPostId(postId);
+		return Map.of("success", true, "commentCount", newCount);
 	}
 
 	@PostMapping("/update")
@@ -115,9 +117,13 @@ public class CommentController {
 
 		Long commentId = Long.valueOf(body.get("commentId").toString());
 
+		// ✅ LẤY TRƯỚC
+		Long postId = commentService.getPostIdByCommentId(commentId);
+
 		boolean deleted = commentService.deleteComment(commentId, user);
 
-		return Map.of("success", deleted);
+		long newCount = commentService.countByPostId(postId);
+		return Map.of("success", deleted, "commentCount", newCount);
 	}
 //	@PostMapping("/reply")
 //	public Map<String, Object> replyComment(@RequestBody Map<String, Object> body, HttpSession session) {

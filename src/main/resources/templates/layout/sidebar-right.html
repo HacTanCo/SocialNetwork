@@ -11,7 +11,9 @@
 		<div class="mt-1">
 			<div class="d-flex justify-content-between align-items-center mb-2">
 				<h6 class="mb-0">Gợi ý cho bạn</h6>
-				<small class="text-muted">Xem tất cả</small>
+				<a th:href="@{/friend}" class="text-decoration-none">
+				    <small class="text-muted">Xem tất cả</small>
+				</a>
 			</div>
 
 			<div th:each="sug : ${suggestions}" class="d-flex align-items-center mb-1">

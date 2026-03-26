@@ -92,6 +92,14 @@ public class CommentService {
 
 		return false;
 	}
+
+	public long countByPostId(Long postId) {
+		return commentRepository.countByPost_Id(postId);
+	}
+
+	public Long getPostIdByCommentId(Long commentId) {
+		return commentRepository.findById(commentId).map(c -> c.getPost().getId()).orElse(null);
+	}
 //	private final CommentRepository commentRepository;
 //	private final PostRepository postRepository;
 //

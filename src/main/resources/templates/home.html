@@ -201,10 +201,15 @@
 				        </div>
 
 				        <!-- COMMENT -->
-				        <i class="bi bi-chat fs-5"
-				           th:onclick="'openCommentModal(' + ${post.postId} + ')'">
-				        </i>
-
+						<div class="d-flex align-items-center gap-1">
+							<i class="bi bi-chat fs-5"  th:onclick="'openCommentModal(' + ${post.postId} + ')'"> </i>
+							<span 
+							    class="comment-count" 
+							    th:attr="data-post-id=${post.postId}"
+							    th:text="${post.commentCount}">
+							    0
+							</span>
+						</div>
 				        <!-- SHARE -->
 				        <i class="bi bi-send fs-5"></i>
 

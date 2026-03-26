@@ -26,4 +26,5 @@ public class PostResponseDTO {
 
 	private boolean liked;
 	private long likeCount;
+	private long commentCount;
 }

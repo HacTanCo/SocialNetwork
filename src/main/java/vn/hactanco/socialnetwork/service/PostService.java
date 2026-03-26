@@ -23,6 +23,7 @@ import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
 import vn.hactanco.socialnetwork.model.Post;
 import vn.hactanco.socialnetwork.model.PostMedia;
 import vn.hactanco.socialnetwork.model.User;
+import vn.hactanco.socialnetwork.repository.CommentRepository;
 import vn.hactanco.socialnetwork.repository.LikeRepository;
 import vn.hactanco.socialnetwork.repository.PostRepository;
 
@@ -32,6 +33,7 @@ public class PostService {
 
 	private final PostRepository postRepository;
 	private final LikeRepository likeRepository;
+	private final CommentRepository commentRepository;
 	@Value("${file.upload-dir}")
 	private String uploadDir;
 
@@ -172,6 +174,11 @@ public class PostService {
 		Map<Long, Long> likeCountMap = likeRepository.countLikesByPostIds(ids).stream()
 				.collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
 
+		List<Long> postIds = posts.stream().map(Post::getId).toList();
+
+		Map<Long, Long> commentCountMap = commentRepository.countCommentsByPostIds(postIds).stream()
+				.collect(Collectors.toMap(obj -> (Long) obj[0], obj -> (Long) obj[1]));
+
 		// 🔥 4. USER ĐÃ LIKE (1 query)
 		List<Long> likedPostIds = likeRepository.findLikedPostIds(currentUser.getId(), ids);
 
@@ -182,6 +189,7 @@ public class PostService {
 			// getOrDefault: Lấy value theo key, nếu key không tồn tại thì trả về giá trị
 			// mặc định
 			dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0L));
+			dto.setCommentCount(commentCountMap.getOrDefault(post.getId(), 0L));
 			// contains: Kiểm tra xem phần tử có tồn tại trong List (hoặc Set) không
 			dto.setLiked(likedPostIds.contains(post.getId()));
 
