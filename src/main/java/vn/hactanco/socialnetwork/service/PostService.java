@@ -198,6 +198,45 @@ public class PostService {
 		}).toList();
 	}
 
+	public List<PostResponseDTO> getPostsByUserDTO(Long userId, int page, int size, User currentUser) {
+
+		Pageable pageable = PageRequest.of(page, size);
+
+		// 1. lấy id
+		Page<Long> postIdsPage = postRepository.findPostIdsByUser(userId, pageable);
+		List<Long> ids = postIdsPage.getContent();
+
+		// 2. fetch full
+		List<Post> posts = postRepository.findByIdInWithUserAndMedia(ids);
+
+		Map<Long, Post> map = posts.stream().collect(Collectors.toMap(Post::getId, p -> p));
+
+		List<Post> sortedPosts = ids.stream().map(map::get).toList();
+
+		// 3. like count
+		Map<Long, Long> likeCountMap = likeRepository.countLikesByPostIds(ids).stream()
+				.collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+		// 4. comment count
+		Map<Long, Long> commentCountMap = commentRepository.countCommentsByPostIds(ids).stream()
+				.collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+		// 5. liked
+		List<Long> likedPostIds = likeRepository.findLikedPostIds(currentUser.getId(), ids);
+
+		// 6. map DTO
+		return sortedPosts.stream().map(post -> {
+
+			PostResponseDTO dto = convertToDTO(post);
+
+			dto.setLikeCount(likeCountMap.getOrDefault(post.getId(), 0L));
+			dto.setCommentCount(commentCountMap.getOrDefault(post.getId(), 0L));
+			dto.setLiked(likedPostIds.contains(post.getId()));
+
+			return dto;
+
+		}).toList();
+	}
 //	public Page<Post> getFeed(int page, int size) {
 //
 //		Pageable pageable = PageRequest.of(page, size);

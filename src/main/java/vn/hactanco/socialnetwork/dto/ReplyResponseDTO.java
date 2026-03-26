@@ -18,4 +18,5 @@ public class ReplyResponseDTO {
 	private String userAvatar;
 	private String timeAgo;
 	private boolean isOwner;
+	private Long userId;
 }

@@ -73,21 +73,31 @@ function loadComments(postId) {
 				    `;
 				}
                 div.innerHTML = `
-                    <div class="d-flex gap-2">
-                        <img src="${c.userAvatar}" 
-                             class="rounded-circle" 
-                             style="width:32px;height:32px;object-fit:cover;">
+				<div class="d-flex gap-2">
 
-							 <div class="flex-grow-1">
+				    <!-- AVATAR -->
+				    <a href="/profile/${c.userId}">
+				        <img src="${c.userAvatar}" 
+				             class="rounded-circle" 
+				             style="width:32px;height:32px;object-fit:cover;">
+				    </a>
 
-							     <!-- Bubble -->
-							     <div class="bg-light px-3 py-2 rounded-4 d-inline-block">
-							         <div class="fw-bold" style="font-size:14px;">
-							             ${c.userName}
-							         </div>
-									 <div id="comment-content-${c.id}" style="font-size:14px;">
-									     ${c.content}
-									 </div>
+				    <div class="flex-grow-1">
+
+				        <!-- Bubble -->
+				        <div class="bg-light px-3 py-2 rounded-4 d-inline-block">
+
+				            <!-- USERNAME -->
+				            <div class="fw-bold" style="font-size:14px;">
+				                <a href="/profile/${c.userId}" 
+				                   class="text-dark text-decoration-none">
+				                    ${c.userName}
+				                </a>
+				            </div>
+
+				            <div id="comment-content-${c.id}" style="font-size:14px;">
+				                ${c.content}
+				            </div>
 
 									 <input type="text" 
 									        id="comment-input-${c.id}" 
@@ -147,20 +157,30 @@ function loadComments(postId) {
 								     }
 
 								     return `
-								     <div class="d-flex gap-2 align-items-start mt-2">
-								         <img src="${r.userAvatar}" 
-								              class="rounded-circle"
-								              style="width:28px;height:28px;object-fit:cover;">
+									 <div class="d-flex gap-2 align-items-start mt-2">
 
-								         <div class="flex-grow-1">
+									     <!-- AVATAR -->
+									     <a href="/profile/${r.userId}">
+									         <img src="${r.userAvatar}" 
+									              class="rounded-circle"
+									              style="width:28px;height:28px;object-fit:cover;">
+									     </a>
 
-								             <div class="bg-light px-3 py-2 rounded-4 d-inline-block">
-								                 <div class="fw-bold" style="font-size:14px;">
-								                     ${r.userName}
-								                 </div>
-												 <div id="comment-content-${r.id}" style="font-size:14px;">
-												     ${r.content}
-												 </div>
+									     <div class="flex-grow-1">
+
+									         <div class="bg-light px-3 py-2 rounded-4 d-inline-block">
+
+									             <!-- USERNAME -->
+									             <div class="fw-bold" style="font-size:14px;">
+									                 <a href="/profile/${r.userId}" 
+									                    class="text-dark text-decoration-none">
+									                     ${r.userName}
+									                 </a>
+									             </div>
+
+									             <div id="comment-content-${r.id}" style="font-size:14px;">
+									                 ${r.content}
+									             </div>
 
 												 <input type="text" 
 												        id="comment-input-${r.id}" 

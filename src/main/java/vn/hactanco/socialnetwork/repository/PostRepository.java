@@ -25,4 +25,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			    WHERE p.id IN :ids
 			""")
 	List<Post> findByIdInWithUserAndMedia(List<Long> ids);
+
+	@Query("""
+			    SELECT p.id
+			    FROM Post p
+			    WHERE p.user.id = :userId
+			    ORDER BY p.createdAt DESC
+			""")
+	Page<Long> findPostIdsByUser(Long userId, Pageable pageable);
 }

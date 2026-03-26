@@ -38,12 +38,13 @@ public class CommentService {
 					.map(r -> ReplyResponseDTO.builder().id(r.getId()).content(r.getContent())
 							.userName(r.getUser().getName()).userAvatar(r.getUser().getAvatar())
 							.timeAgo(TinhThoiGian.timeAgo(r.getCreatedAt()))
-							.isOwner(r.getUser().getId().equals(currentUserId)).build())
+							.isOwner(r.getUser().getId().equals(currentUserId)).userId(r.getUser().getId()).build())
 					.toList();
 
 			return CommentResponseDTO.builder().id(c.getId()).content(c.getContent()).userName(c.getUser().getName())
 					.userAvatar(c.getUser().getAvatar()).timeAgo(TinhThoiGian.timeAgo(c.getCreatedAt()))
-					.isOwner(c.getUser().getId().equals(currentUserId)).replies(replies).build();
+					.isOwner(c.getUser().getId().equals(currentUserId)).replies(replies).userId(c.getUser().getId())
+					.build();
 
 		}).toList();
 	}

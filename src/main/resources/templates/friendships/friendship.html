@@ -48,13 +48,18 @@
                     <div th:each="u : ${friends}" class="col-md-6">
                         <div class="border rounded p-3 d-flex align-items-center justify-content-between bg-white">
                             <div class="d-flex align-items-center">
-                                <img th:src="${u.avatar}"
-                                     class="rounded-circle me-3" width="48" height="48" alt="Avatar">
+								<a th:href="@{/profile/{id}(id=${u.id})}" 
+								               class="d-flex align-items-center text-decoration-none text-dark">
 
-                                <div>
-                                    <div class="fw-bold" th:text="${u.name}"></div>
-                                    <small class="text-muted">Bạn bè</small>
-                                </div>
+								                <img th:src="${u.avatar}"
+								                     class="rounded-circle me-3" width="48" height="48" alt="Avatar">
+
+								                <div>
+								                    <div class="fw-bold" th:text="${u.name}"></div>
+								                    <small class="text-muted">Bạn bè</small>
+								                </div>
+
+								            </a>
                             </div>
 
                             <div class="d-flex gap-2">
@@ -90,10 +95,15 @@
                 <div class="row g-3">
                     <div th:each="u : ${suggestions}" class="col-md-4">
                         <div class="border rounded p-3 text-center bg-white">
-                            <img th:src="${u.avatar}"
-                                 class="rounded-circle mb-2" width="60" height="60" alt="Avatar">
+							<a th:href="@{/profile/{id}(id=${u.userId})}" 
+							           class="text-decoration-none text-dark">
 
-                            <div class="fw-bold" th:text="${u.name}"></div>
+							            <img th:src="${u.avatar}"
+							                 class="rounded-circle mb-2" width="60" height="60" alt="Avatar">
+
+							            <div class="fw-bold" th:text="${u.name}"></div>
+
+							        </a>
 
                             <form method="post" th:action="@{/friend/send}" class="mt-2">
                                 <input type="hidden" name="friend_id" th:value="${u.userId}">
@@ -120,13 +130,18 @@
                     <div th:each="u : ${pending}" class="col-md-6">
                         <div class="border rounded p-3 d-flex align-items-center justify-content-between bg-white">
                             <div class="d-flex align-items-center">
-                                <img th:src="${u.avatar}"
-                                     class="rounded-circle me-3" width="48" height="48" alt="Avatar">
+								<a th:href="@{/profile/{id}(id=${u.id})}" 
+								               class="d-flex align-items-center text-decoration-none text-dark">
 
-                                <div>
-                                    <div class="fw-bold" th:text="${u.name}"></div>
-                                    <small class="text-muted">Đã gửi lời mời kết bạn</small>
-                                </div>
+								                <img th:src="${u.avatar}"
+								                     class="rounded-circle me-3" width="48" height="48" alt="Avatar">
+
+								                <div>
+								                    <div class="fw-bold" th:text="${u.name}"></div>
+								                    <small class="text-muted">Đã gửi lời mời kết bạn</small>
+								                </div>
+
+								            </a>
                             </div>
 
                             <div class="d-flex gap-2">
@@ -308,18 +323,17 @@
         </div>
     </div>
 
-    <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
-    <!-- Hoặc giữ nguyên CDN như cũ -->
+   
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
    
 
    
-    <script th:src="@{/assets/js/toggleChangePassword.js}"></script>
-    <script th:src="@{/assets/js/change-password.js}"></script>
-    <script th:src="@{/assets/js/chat.js}"></script>
-    <script th:src="@{/assets/js/previewImage.js}"></script>
-    <script th:src="@{/assets/js/ai-chat.js}"></script>
+   <!-- <script th:src="@{/assets/js/toggleChangePassword.js}"></script>-->
+    <!--<script th:src="@{/assets/js/change-password.js}"></script>-->
+    <!--<script th:src="@{/assets/js/chat.js}"></script>-->
+    <!--<script th:src="@{/assets/js/previewImage.js}"></script>-->
+   <!-- <script th:src="@{/assets/js/ai-chat.js}"></script>-->
 
 </body>
 </html>	

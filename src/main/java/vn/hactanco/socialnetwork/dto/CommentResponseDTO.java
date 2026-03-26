@@ -20,6 +20,6 @@ public class CommentResponseDTO {
 	private String userAvatar;
 	private String timeAgo;
 	private boolean isOwner;
-
+	private Long userId;
 	private List<ReplyResponseDTO> replies;
 }

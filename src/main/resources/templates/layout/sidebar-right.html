@@ -17,11 +17,17 @@
 			</div>
 
 			<div th:each="sug : ${suggestions}" class="d-flex align-items-center mb-1">
-				<img th:src="${sug.avatar}"
-					class="rounded-circle me-2" style="width:44px;height:44px;">
-				<div class="flex-grow-1">
-					<div class="fw-bold small" th:text="${sug.name}"></div>
-				</div>
+				<a th:href="@{/profile/{id}(id=${sug.userId})}">
+				        <img th:src="${sug.avatar}"
+				             class="rounded-circle me-2"
+				             style="width:44px;height:44px;object-fit:cover;">
+				    </a>
+					<div class="flex-grow-1">
+					        <a th:href="@{/profile/{id}(id=${sug.userId})}"
+					           class="fw-bold small text-dark text-decoration-none">
+					            <span th:text="${sug.name}"></span>
+					        </a>
+					    </div>
 				<button class="btn btn-outline-secondary btn-sm" th:onclick="'toggleFollow(this, ' + ${sug.userId} + ')'">
 					Kết bạn
 				</button>

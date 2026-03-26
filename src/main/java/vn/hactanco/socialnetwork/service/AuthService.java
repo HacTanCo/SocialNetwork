@@ -47,7 +47,7 @@ public class AuthService {
 		user.setEmail(request.getEmail());
 		user.setPassword(this.passwordEncoder.encode(request.getPassword()));
 		user.setAvatar("/assets/images/default-avatar.jpg");
-		user.setBio("");
+		user.setBio(null);
 		user.setIsActive(true);
 		user.setCreatedAt(Instant.now());
 		user.setRole(role);

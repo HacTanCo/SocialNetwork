@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.UserRepository;
 
@@ -20,4 +21,7 @@ public class UserService {
 		return userOpt.get();
 	}
 
+	public User getById(Long id) {
+		return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+	}
 }

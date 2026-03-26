@@ -74,22 +74,24 @@
 				<div class="d-flex justify-content-between align-items-center p-3 border-bottom">
 
 					<!-- Bên trái: avatar + tên + thời gian -->
-					<div class="d-flex align-items-center">
+					<a th:href="@{/profile/{id}(id=${post.userId})}" 
+					   class="d-flex align-items-center text-decoration-none text-dark">
 
-						<img th:src="@{${post.userAvatar}}" class="rounded-circle me-2"
-							style="width:40px;height:40px;">
+					    <img th:src="@{${post.userAvatar}}" 
+					         class="rounded-circle me-2"
+					         style="width:40px;height:40px;">
 
-						<div>
+					    <div>
 
-							<div class="fw-bold" th:text="${post.userName}"></div>
+					        <div class="fw-bold" th:text="${post.userName}"></div>
 
-							<small class="text-muted"
-								th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
-							</small>
+					        <small class="text-muted"
+					            th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
+					        </small>
 
-						</div>
+					    </div>
 
-					</div>
+					</a>
 
 					<!-- Bên phải: 3 chấm -->
 					<div class="dropdown">
@@ -220,7 +222,10 @@
 
 				    <!-- CONTENT -->
 				    <div>
-				        <span class="fw-bold" th:text="${post.userName}"></span>
+						<a th:href="@{/profile/{id}(id=${post.userId})}" 
+						       class="fw-bold text-dark text-decoration-none"
+						       th:text="${post.userName}">
+						    </a>
 				        <span class="post-content" th:text="${post.content}"></span>
 				    </div>
 
