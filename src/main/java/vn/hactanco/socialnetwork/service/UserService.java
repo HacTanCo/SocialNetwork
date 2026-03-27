@@ -41,4 +41,5 @@ public class UserService {
 		return UserProfileDTO.builder().id(user.getId()).name(user.getName()).avatar(user.getAvatar())
 				.bio(user.getBio()).postCount(postCount).build();
 	}
+
 }

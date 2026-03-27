@@ -115,7 +115,53 @@
                     </div>
                 </div>
             </div>
+			<!-- ================= Đã gửi lời mời ================= -->
+			<div class="mb-5">
+			    <h5 class="fw-bold mb-3">
+			        <i class="bi bi-send me-2"></i>
+			        Đã gửi lời mời
+			        <span class="text-muted" th:text="'(' + ${sent.size()} + ')'"></span>
+			    </h5>
 
+			    <p th:if="${#lists.isEmpty(sent)}" class="text-muted">
+			        Bạn chưa gửi lời mời nào.
+			    </p>
+
+			    <div class="row g-3">
+			        <div th:each="u : ${sent}" class="col-md-6">
+			            <div class="border rounded p-3 d-flex align-items-center justify-content-between bg-white">
+
+			                <!-- User -->
+			                <a th:href="@{/profile/{id}(id=${u.id})}" 
+			                   class="d-flex align-items-center text-decoration-none text-dark">
+
+			                    <img th:src="${u.avatar}"
+			                         class="rounded-circle me-3" width="48" height="48">
+
+			                    <div>
+			                        <div class="fw-bold" th:text="${u.name}"></div>
+			                        <small class="text-muted">Đã gửi lời mời</small>
+			                    </div>
+
+			                </a>
+
+			                <!-- Action -->
+			                <div class="d-flex gap-2">
+
+			                    <!-- Hủy lời mời -->
+			                    <form method="post" th:action="@{/friend/remove}">
+			                        <input type="hidden" name="friend_id" th:value="${u.id}">
+			                        <button class="btn btn-outline-danger btn-sm">
+			                            <i class="bi bi-person-x"></i>
+			                        </button>
+			                    </form>
+
+			                </div>
+
+			            </div>
+			        </div>
+			    </div>
+			</div>
             <!-- ================= PENDING ================= -->
            <div class="mb-5">
                 <h5 class="fw-bold mb-3">

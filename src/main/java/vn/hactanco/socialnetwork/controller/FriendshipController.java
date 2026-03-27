@@ -36,7 +36,7 @@ public class FriendshipController {
 			model.addAttribute("pending", friendshipService.searchPending(userId, keyword));
 
 			model.addAttribute("suggestions", friendshipService.searchSuggestions(userId, keyword));
-
+			model.addAttribute("sent", friendshipService.searchSent(userId, keyword));
 		} else {
 			// 👉 NORMAL
 			model.addAttribute("friends", friendshipService.getFriends(userId));
@@ -44,6 +44,7 @@ public class FriendshipController {
 			model.addAttribute("pending", friendshipService.getPendingRequests(userId));
 
 			model.addAttribute("suggestions", friendshipService.getSuggestions(userId)); // full User
+			model.addAttribute("sent", friendshipService.getSentRequests(userId));
 		}
 
 		return "friendships/friendship";
@@ -104,5 +105,14 @@ public class FriendshipController {
 		friendshipService.removeFriend(user.getId(), friend_id);
 
 		return "redirect:/friend";
+	}
+
+	@PostMapping("/friend/remove-profile")
+	public String removeFriendFromProfile(Long friend_id, HttpSession session) {
+		User user = (User) session.getAttribute("USER");
+
+		friendshipService.removeFriend(user.getId(), friend_id);
+
+		return "redirect:/profile/" + friend_id;
 	}
 }

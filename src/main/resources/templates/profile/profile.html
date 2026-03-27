@@ -14,7 +14,7 @@
 	<link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
 </head>
 
-<body>
+<body th:attr="data-profile-id=${profileUser.id}">
 	<!-- TOAST MESSAGE -->
 	<div class="toast-container position-fixed top-0 end-0 p-3">
 
@@ -65,23 +65,53 @@
 			        <div class="col-8">
 
 			            <!-- USERNAME + BUTTON -->
-			            <div class="d-flex align-items-center gap-3 mb-2">
+						<div class="d-flex align-items-center gap-3 mb-2">
 
-			                <h4 class="mb-0" th:text="${profileUser.name}"></h4>
+						    <h4 class="mb-0" th:text="${profileUser.name}"></h4>
 
-			                <!-- Nếu là chính mình -->
-			                <button th:if="${currentUser.id == profileUser.id}" 
-			                        class="btn btn-outline-secondary btn-sm">
-			                    Chỉnh sửa
-			                </button>
+						    <!-- Chính mình -->
+						    <button th:if="${currentUser.id == profileUser.id}" 
+						            class="btn btn-outline-secondary btn-sm">
+						        Chỉnh sửa
+						    </button>
 
-			                <!-- Nếu là người khác -->
-			                <button th:if="${currentUser.id != profileUser.id}" 
-			                        class="btn btn-primary btn-sm">
-			                    Follow
-			                </button>
+						    <!-- Là bạn -->
+							<div th:if="${currentUser.id != profileUser.id and isFriend}" 
+							     class="dropdown">
 
-			            </div>
+							    <button class="btn btn-secondary btn-sm dropdown-toggle" 
+							            type="button" 
+							            data-bs-toggle="dropdown">
+							        Bạn bè
+							    </button>
+
+							    <ul class="dropdown-menu">
+
+							        <li>
+							            <form method="post" th:action="@{/friend/remove-profile}">
+							                <input type="hidden" name="friend_id" th:value="${profileUser.id}">
+							                <button class="dropdown-item text-danger">
+							                    <i class="bi bi-person-x"></i> Hủy kết bạn
+							                </button>
+							            </form>
+							        </li>
+
+							    </ul>
+							</div>
+							<!-- Nếu đã gửi lời mời -->
+							<button th:if="${currentUser.id != profileUser.id and !isFriend and isPending}" 
+							        class="btn btn-outline-primary btn-sm"
+							        th:attr="onclick='toggleFollow(this, ' + ${profileUser.id} + ')'">
+							    Hủy lời mời
+							</button>
+							<!-- Nếu chưa có gì -->
+							<button th:if="${currentUser.id != profileUser.id and !isFriend and !isPending}" 
+							        class="btn btn-outline-primary btn-sm"
+							        th:attr="onclick='toggleFollow(this, ' + ${profileUser.id} + ')'">
+							    Kết bạn
+							</button>
+
+						</div>
 
 			            <!-- STATS -->
 			            <div class="d-flex gap-4 mb-2">
@@ -90,13 +120,9 @@
 			                    <strong th:text="${posts.size()}">0</strong> bài viết
 			                </div>
 
-			                <div>
-			                    <strong>0</strong> người theo dõi
-			                </div>
-
-			                <div>
-			                    <strong>0</strong> đang theo dõi
-			                </div>
+							<div style="cursor:pointer;" onclick="openFriendsModal()">
+							    <strong th:text="${friendCount}">0</strong> bạn bè
+							</div>
 
 			            </div>
 
@@ -302,6 +328,7 @@
 	<script th:src="@{/assets/js/follow.js}"></script>
 	<script th:src="@{/assets/js/previewImage.js}"></script>
 	<script th:src="@{/assets/js/loadFeed.js}"></script>
+	<script th:src="@{/assets/js/friendsModal.js}"></script>
 	<script>
 
 		document.addEventListener("DOMContentLoaded", function () {

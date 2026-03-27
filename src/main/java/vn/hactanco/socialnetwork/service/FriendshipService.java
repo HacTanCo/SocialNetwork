@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import vn.hactanco.socialnetwork.dto.ListFriendFromProfileResponseDTO;
 import vn.hactanco.socialnetwork.dto.UserSuggestionResponseDTO;
 import vn.hactanco.socialnetwork.enums.FriendshipStatus;
 import vn.hactanco.socialnetwork.model.Friendship;
@@ -99,5 +100,29 @@ public class FriendshipService {
 
 	public List<User> searchPending(Long userId, String keyword) {
 		return friendshipRepository.searchPending(userId, "%" + keyword + "%");
+	}
+
+	public int countFriends(Long userId) {
+		return friendshipRepository.countFriends(userId);
+	}
+
+	public List<ListFriendFromProfileResponseDTO> getFriendsDTO(Long profileUserId, Long currentUserId) {
+
+		List<User> friendsOfProfile = getFriends(profileUserId);
+
+		return friendsOfProfile.stream().map(u -> ListFriendFromProfileResponseDTO.builder().userId(u.getId())
+				.name(u.getName()).avatar(u.getAvatar()).isFriend(isFriend(currentUserId, u.getId())).build()).toList();
+	}
+
+	public List<User> getSentRequests(Long userId) {
+		return friendshipRepository.getSentRequests(userId);
+	}
+
+	public List<User> searchSent(Long userId, String keyword) {
+		return friendshipRepository.searchSent(userId, "%" + keyword + "%");
+	}
+
+	public boolean isPending(Long userId, Long targetId) {
+		return friendshipRepository.isPending(userId, targetId);
 	}
 }

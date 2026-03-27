@@ -143,4 +143,39 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 			    AND LOWER(f.follower.name) LIKE LOWER(:keyword)
 			""")
 	List<User> searchPending(Long userId, String keyword);
+
+	@Query("""
+			    SELECT COUNT(f)
+			    FROM Friendship f
+			    WHERE
+			        (f.follower.id = :userId OR f.following.id = :userId)
+			        AND f.status = 'ACCEPTED'
+			""")
+	int countFriends(Long userId);
+
+	@Query("""
+			    SELECT f.following
+			    FROM Friendship f
+			    WHERE f.follower.id = :userId
+			      AND f.status = 'PENDING'
+			""")
+	List<User> getSentRequests(Long userId);
+
+	@Query("""
+			    SELECT f.following
+			    FROM Friendship f
+			    WHERE f.follower.id = :userId
+			      AND f.status = 'PENDING'
+			      AND LOWER(f.following.name) LIKE LOWER(:keyword)
+			""")
+	List<User> searchSent(Long userId, String keyword);
+
+	@Query("""
+			    SELECT COUNT(f) > 0
+			    FROM Friendship f
+			    WHERE f.follower.id = :userId
+			      AND f.following.id = :targetId
+			      AND f.status = 'PENDING'
+			""")
+	boolean isPending(Long userId, Long targetId);
 }

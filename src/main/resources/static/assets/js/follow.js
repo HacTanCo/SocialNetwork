@@ -21,7 +21,7 @@ async function toggleFollow(btn, userId) {
         const result = await res.text();
 
 		if (result === "followed") {
-		    btn.innerText = "Hủy kết bạn";
+		    btn.innerText = "Hủy lời mời";
 		} else if (result === "unfollowed") {
 		    btn.innerText = "Kết bạn";
 		}
