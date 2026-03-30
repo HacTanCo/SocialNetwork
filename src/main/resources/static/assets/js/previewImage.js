@@ -118,16 +118,12 @@ document.addEventListener("DOMContentLoaded", function(){
     });
 
 });
-function previewAvatar(input) {
-    const preview = document.getElementById("avatarPreview");
 
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
+document.getElementById("avatarInput").addEventListener("change", function (e) {
+    const file = e.target.files[0];
 
-        reader.onload = function (e) {
-            preview.src = e.target.result;
-        };
-
-        reader.readAsDataURL(input.files[0]);
+    if (file) {
+        const preview = document.getElementById("avatarPreview");
+        preview.src = URL.createObjectURL(file);
     }
-}
+});

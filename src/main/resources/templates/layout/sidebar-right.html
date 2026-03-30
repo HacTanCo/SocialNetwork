@@ -3,8 +3,10 @@
 
 <aside class="sidebar-right d-none d-xl-block" th:fragment="sidebar-right">
 		<div class="d-flex align-items-center p-3 border-bottom" style="border-color:#dbdbdb;">
+			<a th:href="@{/profile/{id}(id=${session.USER.id})}">
 			<img th:src="${session.USER.avatar}" class="rounded-circle me-3"
 				style="width:44px;height:44px;">
+				</a>
 			<div class="fw-bold" th:text="${session.USER.name}"></div>
 		</div>
 		

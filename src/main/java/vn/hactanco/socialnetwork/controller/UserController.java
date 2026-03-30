@@ -1,12 +1,16 @@
 package vn.hactanco.socialnetwork.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -69,5 +73,18 @@ public class UserController {
 	public List<ListFriendFromProfileResponseDTO> getFriends(@PathVariable Long userId, HttpSession session) {
 		User currentUser = (User) session.getAttribute("USER");
 		return friendshipService.getFriendsDTO(userId, currentUser.getId());
+	}
+
+	@PostMapping("/profile/update")
+	public String updateProfile(@RequestParam String name, @RequestParam String bio,
+			@RequestParam(required = false) MultipartFile avatar, HttpSession session) throws IOException {
+
+		User currentUser = (User) session.getAttribute("USER");
+
+		userService.updateProfile(currentUser, name, bio, avatar);
+
+		session.setAttribute("USER", currentUser);
+
+		return "redirect:/profile/" + currentUser.getId();
 	}
 }
