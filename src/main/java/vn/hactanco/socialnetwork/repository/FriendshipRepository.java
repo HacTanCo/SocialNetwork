@@ -185,7 +185,7 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 			    AND f.status = 'ACCEPTED'
 			    AND LOWER(f.following.name) LIKE LOWER(:keyword)
 			""")
-	List<User> searchFriendsFromFollower(Long userId, String keyword);
+	Page<User> searchFriendsFromFollowerPage(Long userId, String keyword, Pageable pageable);
 
 	@Query("""
 			    SELECT f.follower
@@ -194,28 +194,54 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 			    AND f.status = 'ACCEPTED'
 			    AND LOWER(f.follower.name) LIKE LOWER(:keyword)
 			""")
-	List<User> searchFriendsFromFollowing(Long userId, String keyword);
+	Page<User> searchFriendsFromFollowingPage(Long userId, String keyword, Pageable pageable);
+
+	@Query("""
+			    SELECT u
+			    FROM User u
+			    WHERE u.id IN (
+			        SELECT CASE
+			            WHEN f.follower.id = :userId THEN f.following.id
+			            ELSE f.follower.id
+			        END
+			        FROM Friendship f
+			        WHERE (f.follower.id = :userId OR f.following.id = :userId)
+			        AND f.status = 'ACCEPTED'
+			    )
+			    AND LOWER(u.name) LIKE LOWER(:keyword)
+			""")
+	Page<User> searchFriends(Long userId, String keyword, Pageable pageable);
 
 	@Query(value = """
 			    SELECT u.id, u.avatar, u.name
 			    FROM users u
 			    WHERE u.id != :userId
-
 			    AND u.role_id != 1
-
 			    AND LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
-
 			    AND u.id NOT IN (
-			        SELECT
-			            CASE
-			                WHEN f.follower_id = :userId THEN f.following_id
-			                ELSE f.follower_id
-			            END
+			        SELECT CASE
+			            WHEN f.follower_id = :userId THEN f.following_id
+			            ELSE f.follower_id
+			        END
+			        FROM friendships f
+			        WHERE (f.follower_id = :userId OR f.following_id = :userId)
+			    )
+			""", countQuery = """
+			    SELECT COUNT(*)
+			    FROM users u
+			    WHERE u.id != :userId
+			    AND u.role_id != 1
+			    AND LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			    AND u.id NOT IN (
+			        SELECT CASE
+			            WHEN f.follower_id = :userId THEN f.following_id
+			            ELSE f.follower_id
+			        END
 			        FROM friendships f
 			        WHERE (f.follower_id = :userId OR f.following_id = :userId)
 			    )
 			""", nativeQuery = true)
-	List<UserSuggestionResponseDTO> searchSuggestions(Long userId, String keyword);
+	Page<UserSuggestionResponseDTO> searchSuggestionsPage(Long userId, String keyword, Pageable pageable);
 
 	@Query("""
 			    SELECT f.follower
@@ -224,7 +250,7 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 			    AND f.status = 'PENDING'
 			    AND LOWER(f.follower.name) LIKE LOWER(:keyword)
 			""")
-	List<User> searchPending(Long userId, String keyword);
+	Page<User> searchPendingPage(Long userId, String keyword, Pageable pageable);
 
 	@Query("""
 			    SELECT COUNT(f)
@@ -247,10 +273,10 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 			    SELECT f.following
 			    FROM Friendship f
 			    WHERE f.follower.id = :userId
-			      AND f.status = 'PENDING'
-			      AND LOWER(f.following.name) LIKE LOWER(:keyword)
+			    AND f.status = 'PENDING'
+			    AND LOWER(f.following.name) LIKE LOWER(:keyword)
 			""")
-	List<User> searchSent(Long userId, String keyword);
+	Page<User> searchSentPage(Long userId, String keyword, Pageable pageable);
 
 	@Query("""
 			    SELECT COUNT(f) > 0

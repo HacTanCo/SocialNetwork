@@ -36,13 +36,22 @@ public class FriendshipController {
 		}
 
 		if (keyword != null && !keyword.isEmpty()) {
-			// 👉 SEARCH
-			model.addAttribute("friends", friendshipService.searchFriends(userId, keyword));
+			Page<User> friends = friendshipService.searchFriendsPage(userId, keyword, friendPage, size);
+			model.addAttribute("friends", friends.getContent());
+			model.addAttribute("friendPage", friends);
 
-			model.addAttribute("pending", friendshipService.searchPending(userId, keyword));
+			Page<UserSuggestionResponseDTO> suggestions = friendshipService.searchSuggestionsPage(userId, keyword,
+					suggestPage, size);
+			model.addAttribute("suggestions", suggestions.getContent());
+			model.addAttribute("suggestPage", suggestions);
 
-			model.addAttribute("suggestions", friendshipService.searchSuggestions(userId, keyword));
-			model.addAttribute("sent", friendshipService.searchSent(userId, keyword));
+			Page<User> sent = friendshipService.searchSentPage(userId, keyword, sentPage, size);
+			model.addAttribute("sent", sent.getContent());
+			model.addAttribute("sentPage", sent);
+
+			Page<User> pending = friendshipService.searchPendingPage(userId, keyword, pendingPage, size);
+			model.addAttribute("pending", pending.getContent());
+			model.addAttribute("pendingPage", pending);
 		} else {
 			// ✅ FRIEND
 			Page<User> friends = friendshipService.getFriendPhanTrang(userId, friendPage, size);

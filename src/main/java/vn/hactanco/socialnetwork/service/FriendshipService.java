@@ -109,25 +109,18 @@ public class FriendshipService {
 				.name(u.getName()).avatar(u.getAvatar()).isFriend(isFriend(currentUserId, u.getId())).build()).toList();
 	}
 
-	public List<User> searchFriends(Long userId, String keyword) {
-		String kw = "%" + keyword + "%";
+	public Page<User> searchFriendsPage(Long userId, String keyword, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
 
-		List<User> list1 = friendshipRepository.searchFriendsFromFollower(userId, kw);
-		List<User> list2 = friendshipRepository.searchFriendsFromFollowing(userId, kw);
-
-		list1.addAll(list2);
-		return list1;
+		return friendshipRepository.searchFriends(userId, "%" + keyword + "%", pageable);
 	}
 
-	public List<UserSuggestionResponseDTO> searchSuggestions(Long userId, String keyword) {
-		if (keyword != null && !keyword.trim().isEmpty()) {
-			return friendshipRepository.searchSuggestions(userId, keyword);
-		}
-		return friendshipRepository.getUserSuggestions(userId);
+	public Page<UserSuggestionResponseDTO> searchSuggestionsPage(Long userId, String keyword, int page, int size) {
+		return friendshipRepository.searchSuggestionsPage(userId, keyword, PageRequest.of(page, size));
 	}
 
-	public List<User> searchPending(Long userId, String keyword) {
-		return friendshipRepository.searchPending(userId, "%" + keyword + "%");
+	public Page<User> searchPendingPage(Long userId, String keyword, int page, int size) {
+		return friendshipRepository.searchPendingPage(userId, "%" + keyword + "%", PageRequest.of(page, size));
 	}
 
 	public int countFriends(Long userId) {
@@ -138,8 +131,8 @@ public class FriendshipService {
 		return friendshipRepository.getSentRequests(userId);
 	}
 
-	public List<User> searchSent(Long userId, String keyword) {
-		return friendshipRepository.searchSent(userId, "%" + keyword + "%");
+	public Page<User> searchSentPage(Long userId, String keyword, int page, int size) {
+		return friendshipRepository.searchSentPage(userId, "%" + keyword + "%", PageRequest.of(page, size));
 	}
 
 	public boolean isPending(Long userId, Long targetId) {
