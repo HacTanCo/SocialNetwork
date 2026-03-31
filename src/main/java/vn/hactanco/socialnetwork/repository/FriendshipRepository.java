@@ -3,6 +3,8 @@ package vn.hactanco.socialnetwork.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -94,6 +96,86 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 			    )
 			""", nativeQuery = true)
 	List<User> getFriends(Long userId);
+
+	@Query(value = """
+			    SELECT u.*
+			    FROM users u
+			    WHERE u.id IN (
+			        SELECT
+			            CASE
+			                WHEN f.follower_id = :userId THEN f.following_id
+			                ELSE f.follower_id
+			            END
+			        FROM friendships f
+			        WHERE (f.follower_id = :userId OR f.following_id = :userId)
+			        AND f.status = 'ACCEPTED'
+			    )
+			""", countQuery = """
+			    SELECT COUNT(*)
+			    FROM users u
+			    WHERE u.id IN (
+			        SELECT
+			            CASE
+			                WHEN f.follower_id = :userId THEN f.following_id
+			                ELSE f.follower_id
+			            END
+			        FROM friendships f
+			        WHERE (f.follower_id = :userId OR f.following_id = :userId)
+			        AND f.status = 'ACCEPTED'
+			    )
+			""", nativeQuery = true)
+	Page<User> getFriendPhanTrang(Long userId, Pageable pageable);
+
+	@Query("""
+			    SELECT f.follower
+			    FROM Friendship f
+			    WHERE f.following.id = :userId
+			    AND f.status = 'PENDING'
+			""")
+	Page<User> getPendingPhanTrang(Long userId, Pageable pageable);
+
+	@Query(value = """
+			    SELECT u.id, u.avatar, u.name
+			    FROM users u
+			    WHERE u.id != :userId
+
+			    AND u.role_id != 1
+
+			    AND u.id NOT IN (
+			        SELECT
+			            CASE
+			                WHEN f.follower_id = :userId THEN f.following_id
+			                ELSE f.follower_id
+			            END
+			        FROM friendships f
+			        WHERE (f.follower_id = :userId OR f.following_id = :userId)
+			    )
+			""", countQuery = """
+			    SELECT COUNT(*)
+			    FROM users u
+			    WHERE u.id != :userId
+
+			    AND u.role_id != 1
+
+			    AND u.id NOT IN (
+			        SELECT
+			            CASE
+			                WHEN f.follower_id = :userId THEN f.following_id
+			                ELSE f.follower_id
+			            END
+			        FROM friendships f
+			        WHERE (f.follower_id = :userId OR f.following_id = :userId)
+			    )
+			""", nativeQuery = true)
+	Page<UserSuggestionResponseDTO> getSuggestionPhanTrang(Long userId, Pageable pageable);
+
+	@Query("""
+			    SELECT f.following
+			    FROM Friendship f
+			    WHERE f.follower.id = :userId
+			      AND f.status = 'PENDING'
+			""")
+	Page<User> getSentPhanTrang(Long userId, Pageable pageable);
 
 	// ---------------
 	@Query("""

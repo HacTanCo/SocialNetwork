@@ -1,5 +1,6 @@
 package vn.hactanco.socialnetwork.controller;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import vn.hactanco.socialnetwork.dto.UserSuggestionResponseDTO;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.service.FriendshipService;
 
@@ -18,10 +20,14 @@ public class FriendshipController {
 	private final FriendshipService friendshipService;
 
 	@GetMapping("/friend")
-	public String friendPage(Model model, HttpSession session, @RequestParam(required = false) String keyword) {
+	// @fortmat:off
+	public String friendPage(Model model, HttpSession session, @RequestParam(defaultValue = "0") int friendPage,
+			@RequestParam(defaultValue = "0") int suggestPage, @RequestParam(defaultValue = "0") int sentPage,
+			@RequestParam(defaultValue = "0") int pendingPage,
+
+			@RequestParam(defaultValue = "6") int size, @RequestParam(required = false) String keyword) {
 
 		User user = (User) session.getAttribute("USER");
-
 		Long userId = user.getId();
 
 		// trim keyword cho sạch
@@ -38,13 +44,26 @@ public class FriendshipController {
 			model.addAttribute("suggestions", friendshipService.searchSuggestions(userId, keyword));
 			model.addAttribute("sent", friendshipService.searchSent(userId, keyword));
 		} else {
-			// 👉 NORMAL
-			model.addAttribute("friends", friendshipService.getFriends(userId));
+			// ✅ FRIEND
+			Page<User> friends = friendshipService.getFriendPhanTrang(userId, friendPage, size);
+			model.addAttribute("friends", friends.getContent());
+			model.addAttribute("friendPage", friends);
 
-			model.addAttribute("pending", friendshipService.getPendingRequests(userId));
+			// ✅ SUGGESTION (phải tạo thêm repo)
+			Page<UserSuggestionResponseDTO> suggestions = friendshipService.getSuggestionPhanTrang(userId, suggestPage,
+					size);
+			model.addAttribute("suggestions", suggestions.getContent());
+			model.addAttribute("suggestPage", suggestions);
 
-			model.addAttribute("suggestions", friendshipService.getSuggestions(userId)); // full User
-			model.addAttribute("sent", friendshipService.getSentRequests(userId));
+			// ✅ SENT
+			Page<User> sent = friendshipService.getSentPhanTrang(userId, sentPage, size);
+			model.addAttribute("sent", sent.getContent());
+			model.addAttribute("sentPage", sent);
+
+			// ✅ PENDING
+			Page<User> pending = friendshipService.getPendingPhanTrang(userId, pendingPage, size);
+			model.addAttribute("pending", pending.getContent());
+			model.addAttribute("pendingPage", pending);
 		}
 
 		return "friendships/friendship";

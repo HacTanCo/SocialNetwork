@@ -2,6 +2,9 @@ package vn.hactanco.socialnetwork.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -81,6 +84,31 @@ public class FriendshipService {
 		return friendshipRepository.getFriends(userId);
 	}
 
+	public Page<User> getFriendPhanTrang(Long userId, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
+		return friendshipRepository.getFriendPhanTrang(userId, pageable);
+	}
+
+	public Page<User> getPendingPhanTrang(Long userId, int page, int size) {
+		return friendshipRepository.getPendingPhanTrang(userId, PageRequest.of(page, size));
+	}
+
+	public Page<User> getSentPhanTrang(Long userId, int page, int size) {
+		return friendshipRepository.getSentPhanTrang(userId, PageRequest.of(page, size));
+	}
+
+	public Page<UserSuggestionResponseDTO> getSuggestionPhanTrang(Long userId, int page, int size) {
+		return friendshipRepository.getSuggestionPhanTrang(userId, PageRequest.of(page, size));
+	}
+
+	public List<ListFriendFromProfileResponseDTO> getFriendsDTO(Long profileUserId, Long currentUserId) {
+
+		List<User> friendsOfProfile = getFriends(profileUserId);
+
+		return friendsOfProfile.stream().map(u -> ListFriendFromProfileResponseDTO.builder().userId(u.getId())
+				.name(u.getName()).avatar(u.getAvatar()).isFriend(isFriend(currentUserId, u.getId())).build()).toList();
+	}
+
 	public List<User> searchFriends(Long userId, String keyword) {
 		String kw = "%" + keyword + "%";
 
@@ -104,14 +132,6 @@ public class FriendshipService {
 
 	public int countFriends(Long userId) {
 		return friendshipRepository.countFriends(userId);
-	}
-
-	public List<ListFriendFromProfileResponseDTO> getFriendsDTO(Long profileUserId, Long currentUserId) {
-
-		List<User> friendsOfProfile = getFriends(profileUserId);
-
-		return friendsOfProfile.stream().map(u -> ListFriendFromProfileResponseDTO.builder().userId(u.getId())
-				.name(u.getName()).avatar(u.getAvatar()).isFriend(isFriend(currentUserId, u.getId())).build()).toList();
 	}
 
 	public List<User> getSentRequests(Long userId) {

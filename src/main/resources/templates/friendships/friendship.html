@@ -36,102 +36,150 @@
                 </form>
             </section>
 
-            <!-- ================= FRIEND LIST ================= -->
-            <div class="mb-5">
-                <h5 class="fw-bold mb-3">
-                    <i class="bi bi-people me-2"></i>
-                    Bạn bè của bạn
-                    <span class="text-muted" th:text="'(' + ${friends.size()} + ')'"></span>
-                </h5>
+			<!-- ================= FRIEND LIST ================= -->
+			<div class="mb-5">
+			    <h5 class="fw-bold mb-3">
+			        <i class="bi bi-people me-2"></i>
+			        Bạn bè của bạn
+			        <span class="text-muted" th:text="'(' + ${friendPage.totalElements} + ')'"></span>
+			    </h5>
 
-                <div class="row g-3">
-                    <div th:each="u : ${friends}" class="col-md-6">
-                        <div class="border rounded p-3 d-flex align-items-center justify-content-between bg-white">
-                            <div class="d-flex align-items-center">
-								<a th:href="@{/profile/{id}(id=${u.id})}" 
-								               class="d-flex align-items-center text-decoration-none text-dark">
+			    <div class="row g-3">
+					<p th:if="${#lists.isEmpty(friends)}" class="text-muted text-center mt-3">
+					    Bạn chưa có bạn bè nào.
+					</p>
+			        <div th:each="u : ${friends}" class="col-md-6">
+			            <div class="border rounded p-3 d-flex justify-content-between bg-white">
 
-								                <img th:src="${u.avatar}"
-								                     class="rounded-circle me-3" width="48" height="48" alt="Avatar">
+			                <a th:href="@{/profile/{id}(id=${u.id})}" class="d-flex text-decoration-none text-dark">
+			                    <img th:src="${u.avatar}" class="rounded-circle me-3" width="48" height="48">
+			                    <div>
+			                        <div class="fw-bold" th:text="${u.name}"></div>
+			                        <small class="text-muted">Bạn bè</small>
+			                    </div>
+			                </a>
 
-								                <div>
-								                    <div class="fw-bold" th:text="${u.name}"></div>
-								                    <small class="text-muted">Bạn bè</small>
-								                </div>
+			                <form method="post" th:action="@{/friend/remove}">
+			                    <input type="hidden" name="friend_id" th:value="${u.id}">
+			                    <button class="btn btn-outline-danger btn-sm">
+			                        <i class="bi bi-person-x"></i>
+			                    </button>
+			                </form>
+			            </div>
+			        </div>
+			    </div>
 
-								            </a>
-                            </div>
+			    <!-- PAGINATION FRIEND -->
+			    <div class="d-flex justify-content-center mt-4" th:if="${friendPage.totalPages > 1}">
+			        <ul class="pagination">
 
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-primary btn-sm"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#chatModal"
-                                        :onclick="|openChat(${u.id}, '${u.name}')|">
-                                    <i class="bi bi-chat-dots"></i>
-                                </button>
+			            <li class="page-item" th:classappend="${friendPage.first} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number - 1}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number})}">
+			                    ‹
+			                </a>
+			            </li>
 
-                                <form method="post" th:action="@{/friend/remove}">
-                                    <input type="hidden" name="friend_id" th:value="${u.id}">
-                                    <button class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-person-x"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+			            <li class="page-item"
+			                th:each="i : ${#numbers.sequence(0, friendPage.totalPages - 1)}"
+			                th:classappend="${i == friendPage.number} ? 'active'">
 
-                    <p th:if="${#lists.isEmpty(friends)}" class="text-muted">Bạn chưa có bạn bè nào.</p>
-                </div>
-            </div>
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${i}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number})}"
+			                   th:text="${i + 1}">
+			                </a>
+			            </li>
 
-            <!-- ================= SUGGESTIONS ================= -->
-            <div class="mb-5">
-                <h5 class="fw-bold mb-3">
-                    <i class="bi bi-person-plus me-2"></i>
-                    Gợi ý kết bạn
-                    <span class="text-muted" th:text="'(' + ${suggestions.size()} + ')'"></span>
-                </h5>
+			            <li class="page-item" th:classappend="${friendPage.last} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number + 1}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number})}">
+			                    ›
+			                </a>
+			            </li>
 
-                <div class="row g-3">
-                    <div th:each="u : ${suggestions}" class="col-md-4">
-                        <div class="border rounded p-3 text-center bg-white">
-							<a th:href="@{/profile/{id}(id=${u.userId})}" 
-							           class="text-decoration-none text-dark">
+			        </ul>
+			    </div>
+			</div>
 
-							            <img th:src="${u.avatar}"
-							                 class="rounded-circle mb-2" width="60" height="60" alt="Avatar">
+			<!-- ================= SUGGESTIONS ================= -->
+			<div class="mb-5">
+			    <h5 class="fw-bold mb-3">
+			        <i class="bi bi-person-plus me-2"></i>
+			        Gợi ý kết bạn
+			        <span class="text-muted" th:text="'(' + ${suggestPage.totalElements} + ')'"></span>
+			    </h5>
 
-							            <div class="fw-bold" th:text="${u.name}"></div>
+			    <div class="row g-3">
+					<p th:if="${#lists.isEmpty(suggestions)}" class="text-muted text-center mt-3">
+					    Không có gợi ý kết bạn nào.
+					</p>
+			        <div th:each="u : ${suggestions}" class="col-md-4">
+			            <div class="border rounded p-3 text-center bg-white">
+			                <a th:href="@{/profile/{id}(id=${u.userId})}" class="text-dark text-decoration-none">
+			                    <img th:src="${u.avatar}" class="rounded-circle mb-2" width="60">
+			                    <div class="fw-bold" th:text="${u.name}"></div>
+			                </a>
 
-							        </a>
+			                <form method="post" th:action="@{/friend/send}" class="mt-2">
+			                    <input type="hidden" name="friend_id" th:value="${u.userId}">
+			                    <button class="btn btn-primary btn-sm w-100">Kết bạn</button>
+			                </form>
+			            </div>
+			        </div>
+			    </div>
 
-                            <form method="post" th:action="@{/friend/send}" class="mt-2">
-                                <input type="hidden" name="friend_id" th:value="${u.userId}">
-                                <button class="btn btn-primary btn-sm w-100">
-                                    <i class="bi bi-person-plus"></i> Kết bạn
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-			<!-- ================= Đã gửi lời mời ================= -->
+			    <!-- PAGINATION SUGGEST -->
+			    <div class="d-flex justify-content-center mt-3" th:if="${suggestPage.totalPages > 1}">
+			        <ul class="pagination">
+
+			            <li class="page-item" th:classappend="${suggestPage.first} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number - 1}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number})}">
+			                    ‹
+			                </a>
+			            </li>
+
+			            <li class="page-item"
+			                th:each="i : ${#numbers.sequence(0, suggestPage.totalPages - 1)}"
+			                th:classappend="${i == suggestPage.number} ? 'active'">
+
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${i}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number})}"
+			                   th:text="${i + 1}">
+			                </a>
+			            </li>
+
+			            <li class="page-item" th:classappend="${suggestPage.last} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number + 1}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number})}">
+			                    ›
+			                </a>
+			            </li>
+
+			        </ul>
+			    </div>
+			</div>
+
+			<!-- ================= SENT ================= -->
 			<div class="mb-5">
 			    <h5 class="fw-bold mb-3">
 			        <i class="bi bi-send me-2"></i>
 			        Đã gửi lời mời
-			        <span class="text-muted" th:text="'(' + ${sent.size()} + ')'"></span>
+			        <span class="text-muted" th:text="'(' + ${sentPage.totalElements} + ')'"></span>
 			    </h5>
 
-			    <p th:if="${#lists.isEmpty(sent)}" class="text-muted">
-			        Bạn chưa gửi lời mời nào.
-			    </p>
-
 			    <div class="row g-3">
+
+			        <!-- EMPTY -->
+			        <p th:if="${#lists.isEmpty(sent)}" class="text-muted text-center mt-3">
+			            Bạn chưa gửi lời mời nào.
+			        </p>
+
+			        <!-- LIST -->
 			        <div th:each="u : ${sent}" class="col-md-6">
 			            <div class="border rounded p-3 d-flex align-items-center justify-content-between bg-white">
 
-			                <!-- User -->
+			                <!-- USER -->
 			                <a th:href="@{/profile/{id}(id=${u.id})}" 
 			                   class="d-flex align-items-center text-decoration-none text-dark">
 
@@ -145,10 +193,9 @@
 
 			                </a>
 
-			                <!-- Action -->
+			                <!-- ACTION -->
 			                <div class="d-flex gap-2">
 
-			                    <!-- Hủy lời mời -->
 			                    <form method="post" th:action="@{/friend/remove}">
 			                        <input type="hidden" name="friend_id" th:value="${u.id}">
 			                        <button class="btn btn-outline-danger btn-sm">
@@ -160,55 +207,141 @@
 
 			            </div>
 			        </div>
+
+			    </div>
+
+			    <!-- PAGINATION -->
+			    <div class="d-flex justify-content-center mt-3"
+			         th:if="${sentPage != null and sentPage.totalPages > 1}">
+
+			        <ul class="pagination">
+
+			            <!-- PREV -->
+			            <li class="page-item" th:classappend="${sentPage.first} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number - 1}, pendingPage=${pendingPage.number})}">
+			                    ‹
+			                </a>
+			            </li>
+
+			            <!-- NUMBER -->
+			            <li class="page-item"
+			                th:each="i : ${#numbers.sequence(0, sentPage.totalPages - 1)}"
+			                th:classappend="${i == sentPage.number} ? 'active'">
+
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number}, sentPage=${i}, pendingPage=${pendingPage.number})}"
+			                   th:text="${i + 1}">
+			                </a>
+			            </li>
+
+			            <!-- NEXT -->
+			            <li class="page-item" th:classappend="${sentPage.last} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number + 1}, pendingPage=${pendingPage.number})}">
+			                    ›
+			                </a>
+			            </li>
+
+			        </ul>
 			    </div>
 			</div>
-            <!-- ================= PENDING ================= -->
-           <div class="mb-5">
-                <h5 class="fw-bold mb-3">
-                    <i class="bi bi-clock-history me-2"></i>
-                    Chờ xác nhận
-                    <span class="text-muted" th:text="'(' + ${pending.size()} + ')'"></span>
-                </h5>
 
-                <p th:if="${#lists.isEmpty(pending)}" class="text-muted">Không có lời mời nào.</p>
+			<!-- ================= PENDING ================= -->
+			<div class="mb-5">
+			    <h5 class="fw-bold mb-3">
+			        <i class="bi bi-clock-history me-2"></i>
+			        Chờ xác nhận
+			        <span class="text-muted" th:text="'(' + ${pendingPage.totalElements} + ')'"></span>
+			    </h5>
 
-                <div class="row g-3">
-                    <div th:each="u : ${pending}" class="col-md-6">
-                        <div class="border rounded p-3 d-flex align-items-center justify-content-between bg-white">
-                            <div class="d-flex align-items-center">
-								<a th:href="@{/profile/{id}(id=${u.id})}" 
-								               class="d-flex align-items-center text-decoration-none text-dark">
+			    <div class="row g-3">
 
-								                <img th:src="${u.avatar}"
-								                     class="rounded-circle me-3" width="48" height="48" alt="Avatar">
+			        <!-- EMPTY -->
+			        <p th:if="${#lists.isEmpty(pending)}" class="text-muted text-center mt-3">
+			            Không có lời mời nào đang chờ.
+			        </p>
 
-								                <div>
-								                    <div class="fw-bold" th:text="${u.name}"></div>
-								                    <small class="text-muted">Đã gửi lời mời kết bạn</small>
-								                </div>
+			        <!-- LIST -->
+			        <div th:each="u : ${pending}" class="col-md-6">
+			            <div class="border rounded p-3 d-flex align-items-center justify-content-between bg-white">
 
-								            </a>
-                            </div>
+			                <!-- USER -->
+			                <a th:href="@{/profile/{id}(id=${u.id})}" 
+			                   class="d-flex align-items-center text-decoration-none text-dark">
 
-                            <div class="d-flex gap-2">
-                                <form method="post" th:action="@{/friend/accept}">
-                                    <input type="hidden" name="friend_id" th:value="${u.id}">
-                                    <button class="btn btn-success btn-sm">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                </form>
+			                    <img th:src="${u.avatar}"
+			                         class="rounded-circle me-3" width="48" height="48">
 
-                                <form method="post" th:action="@{/friend/reject}">
-                                    <input type="hidden" name="friend_id" th:value="${u.id}">
-                                    <button class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+			                    <div>
+			                        <div class="fw-bold" th:text="${u.name}"></div>
+			                        <small class="text-muted">Đã gửi lời mời kết bạn</small>
+			                    </div>
+
+			                </a>
+
+			                <!-- ACTION -->
+			                <div class="d-flex gap-2">
+
+			                    <!-- ACCEPT -->
+			                    <form method="post" th:action="@{/friend/accept}">
+			                        <input type="hidden" name="friend_id" th:value="${u.id}">
+			                        <button class="btn btn-success btn-sm">
+			                            <i class="bi bi-check-lg"></i>
+			                        </button>
+			                    </form>
+
+			                    <!-- REJECT -->
+			                    <form method="post" th:action="@{/friend/reject}">
+			                        <input type="hidden" name="friend_id" th:value="${u.id}">
+			                        <button class="btn btn-outline-danger btn-sm">
+			                            <i class="bi bi-x-lg"></i>
+			                        </button>
+			                    </form>
+
+			                </div>
+
+			            </div>
+			        </div>
+
+			    </div>
+
+			    <!-- PAGINATION -->
+			    <div class="d-flex justify-content-center mt-3"
+			         th:if="${pendingPage != null and pendingPage.totalPages > 1}">
+
+			        <ul class="pagination">
+
+			            <!-- PREV -->
+			            <li class="page-item" th:classappend="${pendingPage.first} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number - 1})}">
+			                    ‹
+			                </a>
+			            </li>
+
+			            <!-- NUMBER -->
+			            <li class="page-item"
+			                th:each="i : ${#numbers.sequence(0, pendingPage.totalPages - 1)}"
+			                th:classappend="${i == pendingPage.number} ? 'active'">
+
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number}, pendingPage=${i})}"
+			                   th:text="${i + 1}">
+			                </a>
+			            </li>
+
+			            <!-- NEXT -->
+			            <li class="page-item" th:classappend="${pendingPage.last} ? 'disabled'">
+			                <a class="page-link"
+			                   th:href="@{/friend(friendPage=${friendPage.number}, suggestPage=${suggestPage.number}, sentPage=${sentPage.number}, pendingPage=${pendingPage.number + 1})}">
+			                    ›
+			                </a>
+			            </li>
+
+			        </ul>
+			    </div>
+			</div>
 
         </main>
     </div>

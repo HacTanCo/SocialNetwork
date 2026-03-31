@@ -65,3 +65,6 @@ function openChatFromModal(userId, name) {
     // mở chat
     openChat(userId, name); // bạn đã có sẵn function này rồi
 }
+document.addEventListener('hidden.bs.modal', function (event) {
+    document.activeElement.blur();
+});
