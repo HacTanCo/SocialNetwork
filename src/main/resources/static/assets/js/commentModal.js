@@ -1,4 +1,215 @@
 console.log("commment modal")
+
+let stompClient = null;
+
+function connectWS(postId) {
+	if (stompClient && stompClient.connected) return; // 👈 chặn
+
+	const socket = new SockJS('/ws');
+	stompClient = Stomp.over(socket);
+
+	stompClient.connect({}, function () {
+		stompClient.subscribe(`/topic/comments/${postId}`, function (message) {
+			
+			const res = JSON.parse(message.body);
+			console.log(res.data)
+			if (res.type === "COMMENT") {
+				appendNewComment(res.data);
+			}
+
+			if (res.type === "REPLY") {
+				appendReply(res.parentId, res.data);
+			}
+		});
+	});
+}
+function appendReply(parentId, r) {
+    const container = document.querySelector(`#reply-container-${parentId}`);
+    if (!container) return;
+	const currentUserId = window.currentUserId;
+    let actions = '';
+
+    if (r.userId === window.currentUserId) {
+        actions = `
+        <div class="dropdown">
+            <button class="btn p-0 border-0 text-muted" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots"></i>
+            </button>
+
+            <ul class="dropdown-menu">
+                <li>
+                    <button class="dropdown-item"
+                        onclick="startEdit(${r.id})">
+                        Sửa
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item text-danger"
+                        onclick="deleteComment(${r.id})">
+                        Xóa
+                    </button>
+                </li>
+            </ul>
+        </div>
+        `;
+    }
+
+    const div = document.createElement('div');
+    div.className = "d-flex gap-2 align-items-start mt-2";
+
+    div.innerHTML = `
+    <!-- AVATAR -->
+    <a href="/profile/${r.userId}">
+        <img src="${r.userAvatar}" 
+             class="rounded-circle"
+             style="width:28px;height:28px;object-fit:cover;">
+    </a>
+
+    <div class="flex-grow-1">
+
+        <!-- Bubble -->
+        <div class="bg-light px-3 py-2 rounded-4 d-inline-block">
+
+            <div class="fw-bold" style="font-size:14px;">
+                <a href="/profile/${r.userId}" 
+                   class="text-dark text-decoration-none">
+                    ${r.userName}
+                </a>
+            </div>
+
+            <div id="comment-content-${r.id}" style="font-size:14px;">
+                ${r.content}
+            </div>
+
+            <input type="text" 
+                   id="comment-input-${r.id}" 
+                   class="form-control form-control-sm d-none mt-1"
+                   value="${r.content}">
+
+            <div id="comment-actions-${r.id}" class="d-none mt-1">
+                <button class="btn btn-sm btn-success"
+                        onclick="saveEdit(${r.id})">Lưu</button>
+                <button class="btn btn-sm btn-secondary"
+                        onclick="cancelEdit(${r.id})">Hủy</button>
+            </div>
+
+        </div>
+
+        <!-- Time + actions -->
+        <div class="mt-1 ms-2 d-flex gap-2 align-items-center">
+            <small class="text-muted">${r.timeAgo}</small>
+            ${actions}
+        </div>
+
+    </div>
+    `;
+
+    container.appendChild(div);
+}
+function appendNewComment(c) {
+    const list = document.getElementById('modal-comment-list');
+	const currentUserId = window.currentUserId;
+    let actions = '';
+
+    if (c.userId === currentUserId) {
+        actions = `
+        <div class="dropdown">
+            <button class="btn p-0 border-0 text-muted" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots"></i>
+            </button>
+
+            <ul class="dropdown-menu">
+                <li>
+                    <button class="dropdown-item"
+                        onclick="startEdit(${c.id})">
+                        Sửa
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item text-danger"
+                        onclick="deleteComment(${c.id})">
+                        Xóa
+                    </button>
+                </li>
+            </ul>
+        </div>
+        `;
+    }
+
+    const div = document.createElement('div');
+    div.className = 'mb-2';
+
+    div.innerHTML = `
+    <div class="d-flex gap-2">
+
+        <!-- AVATAR -->
+        <a href="/profile/${c.userId}">
+            <img src="${c.userAvatar}" 
+                 class="rounded-circle" 
+                 style="width:32px;height:32px;object-fit:cover;">
+        </a>
+
+        <div class="flex-grow-1">
+
+            <!-- Bubble -->
+            <div class="bg-light px-3 py-2 rounded-4 d-inline-block">
+
+                <div class="fw-bold" style="font-size:14px;">
+                    <a href="/profile/${c.userId}" 
+                       class="text-dark text-decoration-none">
+                        ${c.userName}
+                    </a>
+                </div>
+
+                <div id="comment-content-${c.id}" style="font-size:14px;">
+                    ${c.content}
+                </div>
+
+                <input type="text" 
+                       id="comment-input-${c.id}" 
+                       class="form-control form-control-sm d-none mt-1"
+                       value="${c.content}">
+
+                <div id="comment-actions-${c.id}" class="d-none mt-1">
+                    <button class="btn btn-sm btn-success"
+                            onclick="saveEdit(${c.id})">Lưu</button>
+                    <button class="btn btn-sm btn-secondary"
+                            onclick="cancelEdit(${c.id})">Hủy</button>
+                </div>
+            </div>
+
+            <!-- Time + actions -->
+            <div class="mt-1 ms-2 d-flex gap-2">
+                <small class="text-muted">${c.timeAgo}</small>
+
+                <button class="btn btn-sm btn-link p-0 text-primary"
+                        onclick="toggleReplyInput(${c.id})">
+                    Trả lời
+                </button>
+
+                ${actions}
+            </div>
+
+            <!-- Replies -->
+            <div class="mt-2 ms-4" id="reply-container-${c.id}"></div>
+
+            <!-- Input reply -->
+            <div class="mt-2 ms-4 d-none" id="reply-input-${c.id}">
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm" placeholder="Viết trả lời...">
+                    <button class="btn btn-sm btn-primary"
+                            onclick="submitReply(${c.id}, this)">
+                        Gửi
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    `;
+
+    list.prepend(div); // 👈 thêm lên đầu
+}
 let currentPostId = null;
 
 // Mở modal và load comment
@@ -6,6 +217,7 @@ function openCommentModal(postId) {
     currentPostId = postId;
     const modal = new bootstrap.Modal(document.getElementById('commentModal'));
     loadComments(postId);
+	connectWS(postId); // 🔥 thêm dòng này
     modal.show();
 }
 // Gửi comment mới
@@ -24,7 +236,7 @@ function submitModalComment() {
 	.then(data => {
 		if (data.success) {
 		    document.getElementById('modal-comment-input').value = '';
-		    loadComments(currentPostId);
+		    //loadComments(currentPostId);
 
 		    const el = document.querySelector(
 		        `.comment-count[data-post-id="${currentPostId}"]`
@@ -126,7 +338,7 @@ function loadComments(postId) {
 								 
 								 
 								 <!-- Replies -->
-								 <div class="mt-2 ms-4">
+								 <div class="mt-2 ms-4" id="reply-container-${c.id}">
 								 ${c.replies.map(r => {
 
 								     let replyActions = '';
@@ -246,7 +458,7 @@ function submitReply(commentId, btn) {
     .then(data => {
 		if (data.success) {
 		    input.value = '';
-		    loadComments(currentPostId);
+		    //loadComments(currentPostId);
 
 		    const el = document.querySelector(
 		        `.comment-count[data-post-id="${currentPostId}"]`
@@ -257,6 +469,13 @@ function submitReply(commentId, btn) {
 		    }
 		}
     });
+}
+function updateCommentCount(count) {
+	const el = document.querySelector(
+		`.comment-count[data-post-id="${currentPostId}"]`
+	);
+
+	if (el) el.innerText = count;
 }
 function toggleReplyInput(commentId) {
     const el = document.getElementById('reply-input-' + commentId);

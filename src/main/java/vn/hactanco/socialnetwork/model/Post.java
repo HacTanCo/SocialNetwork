@@ -45,6 +45,8 @@ public class Post {
 
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<Like> likes;
+	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+	private List<Comment> comments;
 
 	@PrePersist
 	public void prePersist() {

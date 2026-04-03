@@ -66,181 +66,177 @@
 					</div>
 				</div>
 			</div>
-			
+
 			<div id="feed">
-			<!-- POSTS -->
-			<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white" th:attr="data-post-id=${post.postId}">
+				<!-- POSTS -->
+				<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white"
+					th:attr="data-post-id=${post.postId}">
 
-				<!-- HEADER -->
-				<div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+					<!-- HEADER -->
+					<div class="d-flex justify-content-between align-items-center p-3 border-bottom">
 
-					<!-- Bên trái: avatar + tên + thời gian -->
-					<a th:href="@{/profile/{id}(id=${post.userId})}" 
-					   class="d-flex align-items-center text-decoration-none text-dark">
+						<!-- Bên trái: avatar + tên + thời gian -->
+						<a th:href="@{/profile/{id}(id=${post.userId})}"
+							class="d-flex align-items-center text-decoration-none text-dark">
 
-					   <img th:src="@{${post.userAvatar}}" 
-					        class="rounded-circle me-2 user-avatar"
-					        th:attr="data-user-id=${post.userId}"
-					        style="width:40px;height:40px;">
+							<img th:src="@{${post.userAvatar}}" class="rounded-circle me-2 user-avatar"
+								th:attr="data-user-id=${post.userId}" style="width:40px;height:40px;">
 
-					    <div>
+							<div>
 
-					        <div class="fw-bold" th:text="${post.userName}"></div>
+								<div class="fw-bold" th:text="${post.userName}"></div>
 
-					        <small class="text-muted"
-					            th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
-					        </small>
+								<small class="text-muted"
+									th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
+								</small>
 
-					    </div>
+							</div>
 
-					</a>
+						</a>
 
-					<!-- Bên phải: 3 chấm -->
-					<div class="dropdown">
+						<!-- Bên phải: 3 chấm -->
+						<div class="dropdown">
 
-						<button class="btn p-0 border-0 text-muted" type="button" data-bs-toggle="dropdown">
-							<i class="bi bi-three-dots fs-5"></i>
-						</button>
+							<button class="btn p-0 border-0 text-muted" type="button" data-bs-toggle="dropdown">
+								<i class="bi bi-three-dots fs-5"></i>
+							</button>
 
-						<ul class="dropdown-menu dropdown-menu-end"
-							style="border: 1px solid #dbdbdb; border-radius: 8px;">
+							<ul class="dropdown-menu dropdown-menu-end"
+								style="border: 1px solid #dbdbdb; border-radius: 8px;">
 
-							<!-- Chủ bài -->
-							<li th:if="${session.USER.id == post.userId}">
-								<button class="dropdown-item" type="button" onclick="editPost(this)">
-									Sửa
-								</button>
-							</li>
+								<!-- Chủ bài -->
+								<li th:if="${session.USER.id == post.userId}">
+									<button class="dropdown-item" type="button" onclick="editPost(this)">
+										Sửa
+									</button>
+								</li>
 
-							<li th:if="${session.USER.id == post.userId}">
-								<button class="dropdown-item text-danger" type="button" onclick="deletePost(this)">
-									Xóa
-								</button>
-							</li>
+								<li th:if="${session.USER.id == post.userId}">
+									<button class="dropdown-item text-danger" type="button" onclick="deletePost(this)">
+										Xóa
+									</button>
+								</li>
 
-							<!-- Người khác -->
-							<li th:if="${session.USER.id != post.userId}">
-								<button class="dropdown-item text-warning" type="button" onclick="reportPost(this)">
-									Báo cáo bài viết
-								</button>
-							</li>
+								<!-- Người khác -->
+								<li th:if="${session.USER.id != post.userId}">
+									<button class="dropdown-item text-warning" type="button" onclick="reportPost(this)">
+										Báo cáo bài viết
+									</button>
+								</li>
 
-						</ul>
+							</ul>
 
-					</div>
-
-				</div>
-
-
-				<!-- MEDIA -->
-				<div th:if="${post.medias != null and !post.medias.isEmpty()}" class="post-media">
-
-					<!-- 1 MEDIA -->
-					<div th:if="${#lists.size(post.medias) == 1}" class="media-wrapper">
-
-						<img th:if="${post.medias[0].mediaType.name() == 'IMAGE'}" th:src="${post.medias[0].mediaUrl}">
-
-						<video th:if="${post.medias[0].mediaType.name() == 'VIDEO'}" controls>
-							<source th:src="${post.medias[0].mediaUrl}">
-						</video>
+						</div>
 
 					</div>
 
 
-					<!-- MULTIPLE MEDIA -->
-					<div th:if="${#lists.size(post.medias) > 1}" th:id="'carousel-' + ${post.postId}"
-						class="carousel slide">
+					<!-- MEDIA -->
+					<div th:if="${post.medias != null and !post.medias.isEmpty()}" class="post-media">
 
-						<div class="carousel-inner">
+						<!-- 1 MEDIA -->
+						<div th:if="${#lists.size(post.medias) == 1}" class="media-wrapper">
 
-							<div th:each="media, stat : ${post.medias}"
-								th:class="|carousel-item ${stat.index == 0 ? 'active' : ''}|">
+							<img th:if="${post.medias[0].mediaType.name() == 'IMAGE'}"
+								th:src="${post.medias[0].mediaUrl}">
 
-								<div class="media-wrapper">
+							<video th:if="${post.medias[0].mediaType.name() == 'VIDEO'}" controls>
+								<source th:src="${post.medias[0].mediaUrl}">
+							</video>
 
-									<img th:if="${media.mediaType.name() == 'IMAGE'}" th:src="${media.mediaUrl}">
+						</div>
 
-									<video th:if="${media.mediaType.name() == 'VIDEO'}" controls>
-										<source th:src="${media.mediaUrl}">
-									</video>
+
+						<!-- MULTIPLE MEDIA -->
+						<div th:if="${#lists.size(post.medias) > 1}" th:id="'carousel-' + ${post.postId}"
+							class="carousel slide">
+
+							<div class="carousel-inner">
+
+								<div th:each="media, stat : ${post.medias}"
+									th:class="|carousel-item ${stat.index == 0 ? 'active' : ''}|">
+
+									<div class="media-wrapper">
+
+										<img th:if="${media.mediaType.name() == 'IMAGE'}" th:src="${media.mediaUrl}">
+
+										<video th:if="${media.mediaType.name() == 'VIDEO'}" controls>
+											<source th:src="${media.mediaUrl}">
+										</video>
+
+									</div>
 
 								</div>
 
 							</div>
 
+
+							<button class="carousel-control-prev" type="button"
+								th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="prev">
+
+								<span class="carousel-control-prev-icon"></span>
+
+							</button>
+
+							<button class="carousel-control-next" type="button"
+								th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="next">
+
+								<span class="carousel-control-next-icon"></span>
+
+							</button>
+
 						</div>
 
+					</div>
 
-						<button class="carousel-control-prev" type="button"
-							th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="prev">
 
-							<span class="carousel-control-prev-icon"></span>
+					<!-- ACTION -->
+					<div class="p-3">
 
-						</button>
+						<div class="d-flex gap-3 mb-2 align-items-center">
 
-						<button class="carousel-control-next" type="button"
-							th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="next">
+							<!-- LIKE -->
+							<div class="d-flex align-items-center gap-1">
+								<i class="bi fs-5"
+									th:classappend="${post.liked} ? 'bi-heart-fill text-danger' : 'bi-heart'"
+									th:onclick="'likePost(this, ' + ${post.postId} + ')'">
+								</i>
+								<span th:id="'like-count-' + ${post.postId}" th:text="${post.likeCount}">0</span>
+							</div>
 
-							<span class="carousel-control-next-icon"></span>
+							<!-- COMMENT -->
+							<div class="d-flex align-items-center gap-1">
+								<i class="bi bi-chat fs-5" th:onclick="'openCommentModal(' + ${post.postId} + ')'"> </i>
+								<span class="comment-count" th:attr="data-post-id=${post.postId}"
+									th:text="${post.commentCount}">
+									0
+								</span>
+							</div>
+							<!-- SHARE -->
+							<i class="bi bi-send fs-5"></i>
 
-						</button>
+							<!-- BOOKMARK -->
+							<i class="bi bi-bookmark ms-auto fs-5"></i>
+
+						</div>
+
+						<!-- CONTENT -->
+						<div>
+							<a th:href="@{/profile/{id}(id=${post.userId})}"
+								class="fw-bold text-dark text-decoration-none" th:text="${post.userName}">
+							</a>
+							<span class="post-content" th:text="${post.content}"></span>
+						</div>
 
 					</div>
 
 				</div>
-
-
-				<!-- ACTION -->
-				<div class="p-3">
-
-				    <div class="d-flex gap-3 mb-2 align-items-center">
-
-				        <!-- LIKE -->
-				        <div class="d-flex align-items-center gap-1">
-				            <i class="bi fs-5"
-				               th:classappend="${post.liked} ? 'bi-heart-fill text-danger' : 'bi-heart'"
-				               th:onclick="'likePost(this, ' + ${post.postId} + ')'">
-				            </i>
-				            <span th:id="'like-count-' + ${post.postId}" th:text="${post.likeCount}">0</span>
-				        </div>
-
-				        <!-- COMMENT -->
-						<div class="d-flex align-items-center gap-1">
-							<i class="bi bi-chat fs-5"  th:onclick="'openCommentModal(' + ${post.postId} + ')'"> </i>
-							<span 
-							    class="comment-count" 
-							    th:attr="data-post-id=${post.postId}"
-							    th:text="${post.commentCount}">
-							    0
-							</span>
-						</div>
-				        <!-- SHARE -->
-				        <i class="bi bi-send fs-5"></i>
-
-				        <!-- BOOKMARK -->
-				        <i class="bi bi-bookmark ms-auto fs-5"></i>
-
-				    </div>
-
-				    <!-- CONTENT -->
-				    <div>
-						<a th:href="@{/profile/{id}(id=${post.userId})}" 
-						       class="fw-bold text-dark text-decoration-none"
-						       th:text="${post.userName}">
-						    </a>
-				        <span class="post-content" th:text="${post.content}"></span>
-				    </div>
-
-				</div>
-
 			</div>
-		</div>
-		<div class="text-center mb-4">
+			<div class="text-center mb-4">
 
-			    <button class="btn btn-outline-primary"
-			            onclick="loadMore()">
-			        Load more
-			    </button>
+				<button class="btn btn-outline-primary" onclick="loadMore()">
+					Load more
+				</button>
 
 			</div>
 		</main>
@@ -254,7 +250,8 @@
 	<!-- ================== MODALS  ================== -->
 	<div th:replace="~{layout/modals :: modals}"></div>
 
-	
+	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 	<script th:src="@{/assets/js/popupProfile.js}"></script>
 	<script th:src="@{/assets/js/like.js}"></script>
 	<script th:src="@{/assets/js/commentModal.js}"></script>
@@ -272,19 +269,21 @@
 			const errorToast = document.getElementById("errorToast");
 
 			if (successToast) {
-				const toast = new bootstrap.Toast(successToast, {delay: 2000});
+				const toast = new bootstrap.Toast(successToast, { delay: 2000 });
 				toast.show();
 			}
 
 			if (errorToast) {
-				const toast = new bootstrap.Toast(errorToast, {delay: 2000});
+				const toast = new bootstrap.Toast(errorToast, { delay: 2000 });
 				toast.show();
 			}
 
 		});
 
 	</script>
-	
+	<script>
+	    window.currentUserId = [[${session.USER.id}]];
+	</script>
 </body>
 
 </html>
