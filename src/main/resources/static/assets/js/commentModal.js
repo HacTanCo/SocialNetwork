@@ -12,7 +12,7 @@ function connectWS(postId) {
 		stompClient.subscribe(`/topic/comments/${postId}`, function (message) {
 			
 			const res = JSON.parse(message.body);
-			console.log(res.data)
+			
 			if (res.type === "COMMENT") {
 				appendNewComment(res.data);
 			}

@@ -9,10 +9,14 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 	<link rel="stylesheet" th:href="@{/assets/css/instagram-layout.css}">
 	<link rel="stylesheet" th:href="@{/assets/css/ai-chat.css}">
+	<link rel="stylesheet" th:href="@{/assets/css/chat.css}">
 </head>
 
 <body>
-
+	<!-- Chat container -->
+	<div id="chatContainer"
+	     style="position:fixed; bottom:0; right:20px; display:flex; gap:10px; z-index:9999;">
+	</div>
 	<!-- Sidebar Left -->
 	<div th:replace="~{layout/sidebar-left :: mobile-sidebar}"></div>
 	<div th:replace="~{layout/sidebar-left :: sidebar-left}"></div>
@@ -47,23 +51,45 @@
 						Bạn chưa có bạn bè nào.
 					</p>
 					<div th:each="u : ${friends}" class="col-md-6">
-						<div class="border rounded p-3 d-flex justify-content-between bg-white">
+					    <div class="border rounded p-3 d-flex justify-content-between bg-white">
 
-							<a th:href="@{/profile/{id}(id=${u.id})}" class="d-flex text-decoration-none text-dark">
-								<img th:src="${u.avatar}" class="rounded-circle me-3" width="48" height="48">
-								<div>
-									<div class="fw-bold" th:text="${u.name}"></div>
-									<small class="text-muted">Bạn bè</small>
-								</div>
-							</a>
+					        <a th:href="@{/profile/{id}(id=${u.id})}" 
+					           class="d-flex text-decoration-none text-dark">
+					            <img th:src="${u.avatar}" class="rounded-circle me-3" width="48" height="48">
+					            <div>
+					                <div class="fw-bold" th:text="${u.name}"></div>
+					                <small class="text-muted">Bạn bè</small>
+					            </div>
+					        </a>
 
-							<form method="post" th:action="@{/friend/remove}">
-								<input type="hidden" name="friend_id" th:value="${u.id}">
-								<button class="btn btn-outline-danger btn-sm">
-									<i class="bi bi-person-x"></i>
+					        <div class="d-flex gap-2">
+					            <!-- Nút CHAT -->
+								<button class="btn btn-outline-primary btn-sm"
+										style="width:31.6px; height:30.6px;"
+								        data-bs-toggle="modal"
+								        data-bs-target="#chatModal"
+								        th:attr="data-id=${u.id}, data-name=${u.name}"
+								        onclick="handleOpenChat(this)">
+								    <i class="bi bi-chat-dots"></i>
 								</button>
-							</form>
-						</div>
+								<button class="btn btn-outline-primary btn-sm"
+										style="width:31.6px; height:30.6px;"
+								        th:attr="data-id=${u.id}, data-name=${u.name}, data-avatar=${u.avatar}"
+								        onclick="openChatBox(this)">
+								    <i class="bi bi-chat-dots"></i>
+								</button>
+								
+
+					            <!-- Xóa bạn -->
+					            <form method="post" th:action="@{/friend/remove}">
+					                <input type="hidden" name="friend_id" th:value="${u.id}">
+					                <button class="btn btn-outline-danger btn-sm" style="width:31.6px; height:30.6px;">
+					                    <i class="bi bi-person-x"></i>
+					                </button>
+					            </form>
+					        </div>
+
+					    </div>
 					</div>
 				</div>
 
@@ -135,7 +161,7 @@
 					<div th:each="u : ${suggestions}" class="col-md-4">
 						<div class="border rounded p-3 text-center bg-white">
 							<a th:href="@{/profile/{id}(id=${u.userId})}" class="text-dark text-decoration-none">
-								<img th:src="${u.avatar}" class="rounded-circle mb-2" width="60">
+								<img th:src="${u.avatar}" class="rounded-circle mb-2" width="60" height="60">
 								<div class="fw-bold" th:text="${u.name}"></div>
 							</a>
 
@@ -420,7 +446,6 @@
 		</main>
 	</div>
 
-	<!-- ================= MODALS (giữ nguyên cấu trúc, chỉ sửa Thymeleaf) ================= -->
 
 	<!-- Create Post Modal -->
 		<div class="modal fade" id="createPostModal" tabindex="-1">
@@ -569,51 +594,22 @@
 		</div>
 	</div>
 
-	<!-- AI Chat Modal -->
-	<div class="modal fade" id="aiChatModal" tabindex="-1">
-		<div class="modal-dialog modal-dialog-centered modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">
-						<i class="bi bi-robot me-2"></i> Trợ lý AI
-					</h5>
-					<button class="btn-close" data-bs-dismiss="modal"></button>
-				</div>
-
-				<div class="modal-body" style="max-height:400px; overflow-y:auto;">
-					<div id="aiChatMessages" class="d-flex flex-column gap-2">
-						<div class="text-muted small text-center">
-							👋 Xin chào! Tôi có thể giúp gì cho bạn?
-						</div>
-					</div>
-				</div>
-
-				<div class="modal-footer">
-					<div class="d-flex w-100 gap-2 align-items-center">
-						<input type="text" id="aiChatInput" class="form-control" placeholder="Nhập câu hỏi..."
-							onkeydown="handleAiEnter(event)">
-						<button class="btn btn-primary px-3" onclick="sendAiMessage()">
-							<i class="bi bi-send"></i>
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
 
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-	
-		
+	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 
 
 	<!-- <script th:src="@{/assets/js/toggleChangePassword.js}"></script>-->
 	<!--<script th:src="@{/assets/js/change-password.js}"></script>-->
-	<!--<script th:src="@{/assets/js/chat.js}"></script>-->
+	<script th:src="@{/assets/js/chat.js}"></script>
 	<script th:src="@{/assets/js/previewImage.js}"></script>
 	<!-- <script th:src="@{/assets/js/ai-chat.js}"></script>-->
-
+	<script>
+	    window.currentUserId = [[${session.USER.id}]];
+	</script>
+	
 </body>
 
 </html>

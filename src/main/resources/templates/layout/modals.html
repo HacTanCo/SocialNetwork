@@ -312,7 +312,7 @@
 	<!-- Chat Modal -->
 	<div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered modal-lg">
-			<div class="modal-content">
+			<div class="modal-content d-flex flex-column" style="height:500px;">
 				<div class="modal-header">
 					<h5 class="modal-title" id="chatModalLabel">
 						<i class="bi bi-chat-dots me-2"></i>
@@ -321,18 +321,30 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 
-				<div class="modal-body" style="max-height:400px; overflow-y:auto;">
-					<div id="chatMessages" class="d-flex flex-column gap-2">
-						<!-- Tin nhắn sẽ load ở đây -->
-					</div>
+				<div class="modal-body p-0 flex-grow-1 overflow-hidden">
+
+				    <!-- Chat messages -->
+				    
+					<div id="chatMessages"
+					             class="d-flex flex-column gap-2 p-3 h-100 overflow-auto bg-light">
+					        </div>
+
 				</div>
 
-				<div class="modal-footer">
-					<input type="hidden" id="chatFriendId">
-					<input type="text" id="chatInput" class="form-control" placeholder="Nhập tin nhắn...">
-					<button class="btn btn-primary" onclick="sendMessage()">
-						<i class="bi bi-send"></i>
-					</button>
+				<div class="modal-footer p-2">
+				    <input type="hidden" id="chatFriendId">
+
+				    <div class="d-flex w-100 gap-2">
+				        <input type="text"
+				               id="chatInput"
+				               class="form-control rounded-pill"
+				               placeholder="Nhập tin nhắn...">
+
+				        <button class="btn btn-primary rounded-circle px-3"
+				                onclick="sendMessage()">
+				            <i class="bi bi-send"></i>
+				        </button>
+				    </div>
 				</div>
 			</div>
 		</div>
