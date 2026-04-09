@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import vn.hactanco.socialnetwork.dto.MessageDTO;
+import vn.hactanco.socialnetwork.enums.MessageType;
 import vn.hactanco.socialnetwork.model.Message;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.MessageRepository;
@@ -52,7 +53,9 @@ public class MessageService {
 		User receiver = userRepository.findById(dto.getReceiverId()).orElseThrow();
 		// @@formatter:off
 		Message message = Message.builder()
-				.content(dto.getContent())
+				.content(dto.getContent() != null ? dto.getContent() : "")
+				.mediaUrl(dto.getMediaUrl())
+				.type(dto.getType() != null ? dto.getType() : MessageType.TEXT)
 				.sender(sender)
 				.receiver(receiver)
 				.isDelivered(false)
@@ -65,16 +68,18 @@ public class MessageService {
 	}
 
 	private MessageDTO toDTO(Message m) {
-		return MessageDTO.builder()
-				.id(m.getId())
-				.content(m.getContent())
-				.senderId(m.getSender().getId())
-				.receiverId(m.getReceiver().getId())
-				.senderName(m.getSender().getName())
-				.senderAvatar(m.getSender().getAvatar())
-				.isRead(m.isRead())
-				.isDelivered(m.isDelivered())
-				.createdAt(m.getCreatedAt())
-				.build();
+	    return MessageDTO.builder()
+	            .id(m.getId())
+	            .content(m.getContent())
+	            .mediaUrl(m.getMediaUrl())   // 🔥 thêm
+	            .type(m.getType())           // 🔥 thêm (enum)
+	            .senderId(m.getSender().getId())
+	            .receiverId(m.getReceiver().getId())
+	            .senderName(m.getSender().getName())
+	            .senderAvatar(m.getSender().getAvatar())
+	            .isRead(m.isRead())
+	            .isDelivered(m.isDelivered())
+	            .createdAt(m.getCreatedAt())
+	            .build();
 	}
 }

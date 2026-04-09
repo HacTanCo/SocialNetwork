@@ -164,7 +164,8 @@
 .msg-row.me .msg-wrap {
     flex-direction: row-reverse;
 }
-.msg-wrap img {
+
+.msg-wrap > img {
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -249,4 +250,34 @@
     height: 100%;
     color: #999;
     font-style: italic;
+}
+
+/* ==================== Nút gửi file ==================== */
+.file-btn {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+}
+
+.file-btn:hover {
+    opacity: 0.7;
+}
+
+.file-input {
+    display: none; /* 🔥 ẩn input thật */
+}
+
+.chat-bubble img,
+.chat-bubble video {
+    margin-top: 5px;
+    display: block;
+}
+/* ==================== chat media ==================== */
+.chat-media {
+    max-width: 220px;
+    border-radius: 12px;
+    display: block;
+    margin-top: 4px;
 }

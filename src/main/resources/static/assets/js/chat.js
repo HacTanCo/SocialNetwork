@@ -26,25 +26,25 @@ function connectWS() {
         stompClient.subscribe('/topic/chat/' + currentUserId, function(msg) {
 
             const message = JSON.parse(msg.body);
-			
-			// 🔥 nếu là event seen (không có content)
-			   if (!message.content && message.senderId) {
-			       updateSeenStatus(message.senderId);
-			       return;
-			   }
-			   
+
+            // 🔥 nếu là event seen (không có content)
+            if (!message.content && message.senderId) {
+                updateSeenStatus(message.senderId);
+                return;
+            }
+
             const friendId = message.senderId == currentUserId
                 ? message.receiverId
                 : message.senderId;
 
-				if (!openChats[friendId]) {
-				    // 🔥 chỉ show notification thôi
-				    showNewMessageBadge(friendId);
-				}
+            if (!openChats[friendId]) {
+                // 🔥 chỉ show notification thôi
+                showNewMessageBadge(friendId);
+            }
 
             // 🔥 render mini chat
             renderMiniMessage(message, friendId);
-			
+
         });
 
     });
@@ -227,6 +227,13 @@ function openChatBox(btn) {
 					placeholder="Nhắn..." 
 					onfocus="handleFocusMini(${friendId})"
 					onkeydown="handleEnterMini(event, ${friendId})">
+			<label class="file-btn">
+				<i class="bi bi-file-image"></i>
+				<input type="file" 
+			           class="file-input" 
+			           accept="image/*,video/*"
+			           onchange="sendFile(${friendId}, this)">
+			</label>
 	        <button onclick="sendMiniMessage(${friendId})">➤</button>
 	    </div>
 	`;
@@ -235,7 +242,48 @@ function openChatBox(btn) {
     openChats[friendId] = true;
 
     loadMiniChat(friendId);
-	
+
+}
+function sendFile(friendId, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // 🔥 lấy CSRF
+    const token = document.querySelector('meta[name="_csrf"]').content;
+    const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+    fetch("/chat/upload", {
+        method: "POST",
+        body: formData,
+        headers: {
+            [header]: token   // 🔥 add CSRF vào đây
+        }
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Upload failed: " + res.status);
+        return res.text();
+    })
+    .then(url => {
+
+        let type = "IMAGE";
+        if (file.type.startsWith("video")) {
+            type = "VIDEO";
+        }
+
+        stompClient.send("/app/chat.send", {}, JSON.stringify({
+            senderId: currentUserId,
+            receiverId: friendId,
+            content: "",
+            mediaUrl: url,
+            type: type
+        }));
+    })
+    .catch(err => console.error(err));
+
+    input.value = "";
 }
 function handleFocusMini(friendId) {
 
@@ -288,51 +336,63 @@ function handleEnterMini(e, friendId) {
 }
 
 function renderMiniMessage(m, friendId) {
-	
+
     const box = document.getElementById("chat-body-" + friendId);
     if (!box) return;
 
     const isMe = m.senderId == currentUserId;
-	
-	let status = "";
-	    if (isMe) {
-	        if (m.read) {
-	            status = "Đã xem";
-	        } else if (m.delivered) {
-	            status = "Đã nhận";
-	        } else {
-	            status = "Đã gửi";
-	        }
-	    }
-		
+
+    let status = "";
+    if (isMe) {
+        if (m.read) {
+            status = "Đã xem";
+        } else if (m.delivered) {
+            status = "Đã nhận";
+        } else {
+            status = "Đã gửi";
+        }
+    }
+	let mediaHtml = "";
+
+	if (m.type === "IMAGE" && m.mediaUrl) {
+	    mediaHtml = `<img src="${m.mediaUrl}" class="chat-media">`;
+	} 
+	else if (m.type === "VIDEO" && m.mediaUrl) {
+	    mediaHtml = `
+	        <video controls class="chat-media">
+	            <source src="${m.mediaUrl}">
+	        </video>
+	    `;
+	}
     const row = document.createElement("div");
     row.className = "msg-row " + (isMe ? "me" : "");
+	
+	row.innerHTML = `
+	    <div class="msg-wrap">
+	        <img src="${m.senderAvatar || '/default-avatar.png'}"
+	             onerror="this.src='/default-avatar.png'">
 
-    row.innerHTML = `
-        <div class="msg-wrap">
-            <img src="${m.senderAvatar || '/default-avatar.png'}"
-                 onerror="this.src='/default-avatar.png'">
+	        <div class="chat-bubble ${isMe ? 'me' : 'other'}">
+	            ${m.content ? `<div>${m.content}</div>` : ""}
+	            ${mediaHtml}
 
-				 <div class="chat-bubble ${isMe ? 'me' : 'other'}">
-				     <div>${m.content}</div>
-				     <small style="font-size:10px; opacity:0.7;">
-				        ${formatTimeSmart(m.createdAt)}
-				     </small>
-				 </div>
-				
-        </div>	
-    `;
+	            <small style="font-size:10px; opacity:0.7;">
+	                ${formatTimeSmart(m.createdAt)}
+	            </small>
+	        </div>
+	    </div>	
+	`;
 
     box.appendChild(row);
     box.scrollTop = box.scrollHeight;
-	// 🔥 chỉ giữ status ở tin cuối của mình
-	if (isMe) {
-	    const finalStatus = m.read ? "Đã xem"
-	        : m.delivered ? "Đã nhận"
-	        : "Đã gửi";
+    // 🔥 chỉ giữ status ở tin cuối của mình
+    if (isMe) {
+        const finalStatus = m.read ? "Đã xem"
+            : m.delivered ? "Đã nhận"
+                : "Đã gửi";
 
-	    updateLastMessageStatus(box, finalStatus);
-	}
+        updateLastMessageStatus(box, finalStatus);
+    }
 }
 function formatTimeSmart(time) {
     const date = new Date(time);

@@ -49,7 +49,8 @@ public class SecurityConfig {
 				"/", "/assets/**", "/css/**", 
 				"/js/**", "/images/**", "/login", 
 				"/register", "/forgot-password",
-				"/verify-otp", "/reset-password"
+				"/verify-otp", "/reset-password",
+				"/chat/upload"
 				};
 		http.authorizeHttpRequests((requests) -> requests
 				.requestMatchers(WHITELIST).permitAll()

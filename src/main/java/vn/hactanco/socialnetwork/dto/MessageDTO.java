@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.hactanco.socialnetwork.enums.MessageType;
 
 @Getter
 @Setter
@@ -26,5 +27,7 @@ public class MessageDTO {
 
 	private boolean isRead;
 	private boolean isDelivered;
+	private String mediaUrl;
+	private MessageType type; // TEXT | IMAGE | VIDEO
 	private Instant createdAt;
 }
