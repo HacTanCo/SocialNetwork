@@ -28,17 +28,38 @@ public class MessageController {
 		// lưu DB
 		MessageDTO saved = messageService.save(dto);
 
-		// gửi cho receiver
-		messagingTemplate.convertAndSend("/topic/chat/" + dto.getReceiverId(), saved);
+		// 🔥 đánh dấu isDelivered ngay sau khi lưu, vì đã gửi đến receiver rồi
+		messageService.markDelivered(saved.getId());
 
+		// 🔥 lấy lại message mới (đã updated)
+		MessageDTO updated = messageService.getById(saved.getId());
+		// gửi cho receiver
+		messagingTemplate.convertAndSend("/topic/chat/" + dto.getReceiverId(), updated);
 		// gửi lại cho sender (để hiển thị luôn)
-		messagingTemplate.convertAndSend("/topic/chat/" + dto.getSenderId(), saved);
+		messagingTemplate.convertAndSend("/topic/chat/" + dto.getSenderId(), updated);
+	}
+
+	@MessageMapping("/chat.seen")
+	public void seen(MessageDTO dto) {
+
+		// B đã đọc tin của A
+		messageService.markAsRead(dto.getReceiverId(), dto.getSenderId());
+
+		// 🔥 gửi event về A với NGỮ NGHĨA ĐÚNG
+		MessageDTO seenEvent = MessageDTO.builder().senderId(dto.getReceiverId()) // 👉 B (người đã xem)
+				.receiverId(dto.getSenderId()) // 👉 A
+				.build();
+
+		messagingTemplate.convertAndSend("/topic/chat/" + dto.getSenderId(), seenEvent);
+
 	}
 
 	@GetMapping("/chat/{friendId}")
 	@ResponseBody
 	public List<MessageDTO> getChat(@PathVariable Long friendId, HttpSession session) {
 		User currentUser = (User) session.getAttribute("USER");
+		// 🔥 mark seen
+		messageService.markAsRead(currentUser.getId(), friendId);
 		return messageService.getChat(currentUser.getId(), friendId);
 	}
 }

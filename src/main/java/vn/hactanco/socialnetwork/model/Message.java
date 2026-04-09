@@ -2,6 +2,7 @@ package vn.hactanco.socialnetwork.model;
 
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,9 +30,12 @@ public class Message {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Column(columnDefinition = "NVARCHAR(MAX)")
 	private String content;
 
 	private boolean isRead = false;
+
+	private boolean isDelivered = false;
 
 	private Instant createdAt;
 

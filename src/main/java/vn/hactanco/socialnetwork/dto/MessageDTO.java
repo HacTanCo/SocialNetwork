@@ -24,5 +24,7 @@ public class MessageDTO {
 	private String senderName;
 	private String senderAvatar;
 
+	private boolean isRead;
+	private boolean isDelivered;
 	private Instant createdAt;
 }

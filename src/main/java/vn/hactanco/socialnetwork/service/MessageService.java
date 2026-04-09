@@ -23,12 +23,41 @@ public class MessageService {
 		return messageRepository.getChat(userId, friendId).stream().map(this::toDTO).collect(Collectors.toList());
 	}
 
+	public void markDelivered(Long messageId) {
+		Message m = messageRepository.findById(messageId).orElseThrow();
+		m.setDelivered(true);
+		messageRepository.save(m);
+	}
+
+	public void markAsRead(Long userId, Long friendId) {
+		List<Message> messages = messageRepository.getChat(userId, friendId);
+
+		for (Message m : messages) {
+			if (m.getReceiver().getId().equals(userId) && !m.isRead()) {
+				m.setRead(true);
+			}
+		}
+
+		messageRepository.saveAll(messages);
+	}
+
+	public MessageDTO getById(Long id) {
+		Message m = messageRepository.findById(id).orElseThrow();
+		return toDTO(m);
+	}
+
 	public MessageDTO save(MessageDTO dto) {
 
 		User sender = userRepository.findById(dto.getSenderId()).orElseThrow();
 		User receiver = userRepository.findById(dto.getReceiverId()).orElseThrow();
-
-		Message message = Message.builder().content(dto.getContent()).sender(sender).receiver(receiver).build();
+		// @@formatter:off
+		Message message = Message.builder()
+				.content(dto.getContent())
+				.sender(sender)
+				.receiver(receiver)
+				.isDelivered(false)
+			    .isRead(false)
+				.build();
 
 		messageRepository.save(message);
 
@@ -36,8 +65,16 @@ public class MessageService {
 	}
 
 	private MessageDTO toDTO(Message m) {
-		return MessageDTO.builder().id(m.getId()).content(m.getContent()).senderId(m.getSender().getId())
-				.receiverId(m.getReceiver().getId()).senderName(m.getSender().getName())
-				.senderAvatar(m.getSender().getAvatar()).createdAt(m.getCreatedAt()).build();
+		return MessageDTO.builder()
+				.id(m.getId())
+				.content(m.getContent())
+				.senderId(m.getSender().getId())
+				.receiverId(m.getReceiver().getId())
+				.senderName(m.getSender().getName())
+				.senderAvatar(m.getSender().getAvatar())
+				.isRead(m.isRead())
+				.isDelivered(m.isDelivered())
+				.createdAt(m.getCreatedAt())
+				.build();
 	}
 }
