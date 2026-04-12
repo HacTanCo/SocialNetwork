@@ -96,4 +96,26 @@ public class MessageController {
 
 		return "/uploads/chat/" + fileName;
 	}
+
+	@MessageMapping("/chat.delete")
+	public void delete(MessageDTO dto) {
+
+		MessageDTO m = messageService.getById(dto.getId()); // lấy info trước
+
+		messageService.deleteMessage(dto.getId());
+
+		// 🔥 chỉ cần gửi id là đủ
+		messagingTemplate.convertAndSend("/topic/chat/" + m.getSenderId(), dto);
+		messagingTemplate.convertAndSend("/topic/chat/" + m.getReceiverId(), dto);
+	}
+
+	@MessageMapping("/chat.update")
+	public void update(MessageDTO dto) {
+
+		MessageDTO updated = messageService.updateMessage(dto.getId(), dto.getContent());
+
+		// 🔥 gửi cho cả 2 user
+		messagingTemplate.convertAndSend("/topic/chat/" + updated.getSenderId(), updated);
+		messagingTemplate.convertAndSend("/topic/chat/" + updated.getReceiverId(), updated);
+	}
 }

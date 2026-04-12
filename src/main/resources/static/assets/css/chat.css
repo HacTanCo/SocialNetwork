@@ -96,62 +96,7 @@
     justify-content: flex-end;
 }
 
-.message-row .message-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    max-width: 72%;
-}
-.message-row .message-container {
-    display: flex;
-    align-items: flex-end;
-    gap: 6px;
 
-    /* ❌ bỏ cái này */
-    /* max-width: 72%; */
-
-    width: fit-content;   /* 👈 QUAN TRỌNG */
-    max-width: 70%;       /* 👈 giới hạn ở đây thôi */
-}
-
-.message-row.me .message-container {
-    flex-direction: row-reverse;
-}
-
-/* Avatar */
-.message-row .message-container img {
-    width: 28px;
-    height: 28px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-/* Message bubble */
-.message-bubble {
-    padding: 9px 13px;
-    border-radius: 18px;
-    font-size: 14.5px;
-    line-height: 1.45;
-    word-break: break-word;
-    white-space: pre-wrap;
-    max-width: 100%;
-    display: inline-block;
-}
-
-/* Tin nhắn của người khác */
-.message-row:not(.me) .message-bubble {
-    background: #ffffff;
-    border: 1px solid #e5e5e5;
-    border-bottom-left-radius: 6px;     /* bo góc nhỏ bên trái dưới */
-}
-
-/* Tin nhắn của mình */
-.message-row.me .message-bubble {
-    background: #0d6efd;
-    color: white;
-    border-bottom-right-radius: 6px;    /* bo góc nhỏ bên phải dưới */
-}
 .msg-wrap {
     display: flex;
     align-items: flex-end;
@@ -280,4 +225,33 @@
     border-radius: 12px;
     display: block;
     margin-top: 4px;
+}
+.img-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.9);
+
+    justify-content: center;
+    align-items: center;
+}
+
+.img-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 10px;
+}
+.msg-actions {
+    opacity: 0;
+    transition: 0.2s;
+	align-self: center; 
+}
+/* hover mới hiện */
+.msg-row:hover .msg-actions {
+    opacity: 1;
 }

@@ -1,8 +1,10 @@
 package vn.hactanco.socialnetwork.service;
 
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,8 @@ public class MessageService {
 
 	private final MessageRepository messageRepository;
 	private final UserRepository userRepository;
+	@Value("${file.upload-dir}")
+	private String uploadDir;
 
 	public List<MessageDTO> getChat(Long userId, Long friendId) {
 		return messageRepository.getChat(userId, friendId).stream().map(this::toDTO).collect(Collectors.toList());
@@ -66,7 +70,40 @@ public class MessageService {
 
 		return toDTO(message);
 	}
+	public void deleteMessage(Long messageId) {
 
+	    Message m = messageRepository.findById(messageId).orElseThrow();
+
+	    // 🔥 nếu là media → xóa file
+	    if (m.getMediaUrl() != null) {
+	        String filePath = uploadDir + "chat/" + extractFileName(m.getMediaUrl());
+
+	        File file = new File(filePath);
+	        if (file.exists()) {
+	            file.delete();
+	        }
+	    }
+
+	    messageRepository.delete(m);
+	}
+	public MessageDTO updateMessage(Long id, String content) {
+
+	    Message m = messageRepository.findById(id).orElseThrow();
+
+	    // ❌ không cho sửa media
+	    if (m.getType() != MessageType.TEXT) {
+	        throw new RuntimeException("Không thể sửa media");
+	    }
+
+	    m.setContent(content);
+
+	    messageRepository.save(m);
+
+	    return toDTO(m);
+	}
+	private String extractFileName(String url) {
+	    return url.substring(url.lastIndexOf("/") + 1);
+	}
 	private MessageDTO toDTO(Message m) {
 	    return MessageDTO.builder()
 	            .id(m.getId())

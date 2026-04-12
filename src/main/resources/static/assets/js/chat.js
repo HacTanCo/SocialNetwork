@@ -21,14 +21,49 @@ function connectWS() {
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
 
-    stompClient.connect({}, function() {
+    stompClient.connect({}, function () {
 
-        stompClient.subscribe('/topic/chat/' + currentUserId, function(msg) {
+        stompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
 
             const message = JSON.parse(msg.body);
+            // 🔥 HANDLE DELETE
+            if (message.id && !message.content && !message.mediaUrl && !message.createdAt) {
 
-			// ✅ chỉ check seen khi KHÔNG có content + KHÔNG có media
-			if (!message.content && !message.mediaUrl && message.senderId) {
+                const existing = document.querySelector(`[data-id='${message.id}']`);
+                if (existing) {
+                    existing.remove(); // 🔥 xóa luôn khỏi UI
+                }
+
+                return;
+            }
+            // ====================== HANDLE UPDATE ======================
+            // 🔥 nếu message đã tồn tại → update UI, không render mới
+            if (message.id && message.content && message.createdAt) {
+
+                const existing = document.querySelector(`[data-id='${message.id}']`);
+
+                if (existing) {
+                    if (!existing.isConnected) return;
+
+                    const bubble = existing.querySelector(".chat-bubble");
+                    if (!bubble) return; // 🔥 FIX 1: chặn null
+
+                    const contentDiv = bubble.querySelector(".msg-content");
+                    if (!contentDiv) return; // 🔥 FIX 2: chặn null
+
+                    contentDiv.innerText = message.content;
+
+                    const timeEl = bubble.querySelector("small");
+                    if (timeEl) {
+                        timeEl.innerText = formatTimeSmart(message.createdAt) + " (đã sửa)";
+                    }
+
+                    return;
+                }
+            }
+
+            // ✅ chỉ check seen khi KHÔNG có content + KHÔNG có media
+            if (!message.content && !message.mediaUrl && message.senderId) {
                 updateSeenStatus(message.senderId);
                 return;
             }
@@ -49,6 +84,7 @@ function connectWS() {
 
     });
 }
+
 function updateSeenStatus(friendId) {
     const box = document.getElementById("chat-body-" + friendId);
     if (!box) return;
@@ -245,6 +281,12 @@ function openChatBox(btn) {
 
     loadMiniChat(friendId);
 
+    // 🔥 focus input sau khi render
+    setTimeout(() => {
+        const input = box.querySelector("input");
+        if (input) input.focus();
+    }, 100);
+
 }
 function sendFile(friendId, input) {
     const files = input.files;
@@ -266,29 +308,40 @@ function sendFile(friendId, input) {
                 [header]: token
             }
         })
-        .then(res => res.text())
-        .then(url => {
+            .then(res => res.text())
+            .then(url => {
 
-            let type = "IMAGE";
-            if (file.type.startsWith("video")) {
-                type = "VIDEO";
-            }
+                let type = "IMAGE";
+                if (file.type.startsWith("video")) {
+                    type = "VIDEO";
+                }
 
-            // 🔥 gửi từng message
-            stompClient.send("/app/chat.send", {}, JSON.stringify({
-                senderId: currentUserId,
-                receiverId: friendId,
-                content: "",
-                mediaUrl: url,
-                type: type
-            }));
+                // 🔥 gửi từng message
+                stompClient.send("/app/chat.send", {}, JSON.stringify({
+                    senderId: currentUserId,
+                    receiverId: friendId,
+                    content: "",
+                    mediaUrl: url,
+                    type: type
+                }));
 
-        })
-        .catch(err => console.error(err));
+            })
+            .catch(err => console.error(err));
 
     });
 
     input.value = "";
+}
+function openImagePreview(src) {
+    const modal = document.getElementById("imagePreviewModal");
+    const img = document.getElementById("previewImg");
+
+    img.src = src;
+    modal.style.display = "flex";
+}
+
+function closeImagePreview() {
+    document.getElementById("imagePreviewModal").style.display = "none";
 }
 function handleFocusMini(friendId) {
 
@@ -357,35 +410,77 @@ function renderMiniMessage(m, friendId) {
             status = "Đã gửi";
         }
     }
-	let mediaHtml = "";
+    let mediaHtml = "";
 
-	if (m.type === "IMAGE" && m.mediaUrl) {
-	    mediaHtml = `<img src="${m.mediaUrl}" class="chat-media">`;
-	} 
-	else if (m.type === "VIDEO" && m.mediaUrl) {
-	    mediaHtml = `
+    if (m.type === "IMAGE" && m.mediaUrl) {
+        mediaHtml = `
+		    <img src="${m.mediaUrl}" 
+		         class="chat-media"
+		         onclick="openImagePreview('${m.mediaUrl}')"
+		         style="cursor:pointer;">
+		`;
+    }
+    else if (m.type === "VIDEO" && m.mediaUrl) {
+        mediaHtml = `
 	        <video controls class="chat-media">
 	            <source src="${m.mediaUrl}">
 	        </video>
 	    `;
-	}
+    }
     const row = document.createElement("div");
     row.className = "msg-row " + (isMe ? "me" : "");
-	
-	row.innerHTML = `
+
+    // 🔥 THÊM: gắn id để sau này update đúng message
+    row.setAttribute("data-id", m.id);
+    // 🔥 THÊM: nút sửa (chỉ hiện với message của mình + TEXT)
+    let actions = ""; // 🔥 QUAN TRỌNG
+
+    if (isMe) {
+        actions = `
+	    <div class="dropdown msg-actions">
+	        <button class="btn p-0 border-0 text-muted" data-bs-toggle="dropdown">
+	            <i class="bi bi-three-dots"></i>
+	        </button>
+
+	        <ul class="dropdown-menu dropdown-menu-end">
+	            ${m.type === "TEXT" ? `
+	            <li>
+	                <button class="dropdown-item"
+	                    onclick="editMessage(${m.id})">
+	                    Sửa
+	                </button>
+	            </li>
+	            ` : ""}
+
+	            <li>
+	                <button class="dropdown-item text-danger"
+	                    onclick="deleteMessage(${m.id})">
+	                    Xóa
+	                </button>
+	            </li>
+	        </ul>
+	    </div>
+	    `;
+    }
+
+    row.innerHTML = `
 	    <div class="msg-wrap">
 	        <img src="${m.senderAvatar || '/default-avatar.png'}"
 	             onerror="this.src='/default-avatar.png'">
 
+	        
+
 	        <div class="chat-bubble ${isMe ? 'me' : 'other'}">
-	            ${m.content ? `<div>${m.content}</div>` : ""}
+				
+				${m.content ? `<div class="msg-content">${m.content}</div>` : ""}
 	            ${mediaHtml}
 
 	            <small style="font-size:10px; opacity:0.7;">
 	                ${formatTimeSmart(m.createdAt)}
 	            </small>
 	        </div>
-	    </div>	
+			${actions} 
+	    </div>
 	`;
 
     box.appendChild(row);
@@ -399,6 +494,83 @@ function renderMiniMessage(m, friendId) {
         updateLastMessageStatus(box, finalStatus);
     }
 }
+function deleteMessage(id) {
+
+    if (!confirm("Bạn có chắc muốn xóa tin nhắn này?")) return;
+
+    stompClient.send("/app/chat.delete", {}, JSON.stringify({
+        id: id
+    }));
+}
+function editMessage(id) {
+
+    const row = document.querySelector(`[data-id='${id}']`);
+    if (!row) return;
+
+    const bubble = row.querySelector(".chat-bubble");
+    if (!bubble) return;
+
+    const contentDiv = bubble.querySelector(".msg-content");
+    if (!contentDiv) return;
+
+    const oldText = contentDiv.innerText;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = oldText;
+    input.className = "form-control form-control-sm";
+
+    contentDiv.replaceWith(input);
+    input.focus();
+
+    let isSaving = false;
+    let isHandled = false; // 🔥 KEY: chặn xử lý nhiều lần
+
+    function safeReplace(newText) {
+        if (isHandled) return; // 🔥 chống double run
+        isHandled = true;
+
+        if (!input.parentNode) return;
+
+        const div = document.createElement("div");
+        div.className = "msg-content";
+        div.innerText = newText;
+
+        input.replaceWith(div);
+    }
+
+    input.addEventListener("keydown", function (e) {
+
+        // ENTER = save
+        if (e.key === "Enter") {
+            e.preventDefault();
+
+            const newContent = input.value.trim();
+            if (!newContent) return;
+
+            isSaving = true;
+
+            safeReplace(newContent); // 🔥 UI revert ngay
+
+            stompClient.send("/app/chat.update", {}, JSON.stringify({
+                id: id,
+                content: newContent
+            }));
+        }
+
+        // ESC = cancel
+        if (e.key === "Escape") {
+            safeReplace(oldText); // 🔥 chỉ gọi 1 lần duy nhất
+        }
+    });
+
+    input.addEventListener("blur", function () {
+        if (!isSaving) {
+            safeReplace(oldText); // 🔥 blur cũng dùng chung logic
+        }
+    });
+}
+
 function formatTimeSmart(time) {
     const date = new Date(time);
     const now = new Date();
@@ -443,6 +615,10 @@ function loadMiniChat(friendId) {
             box.innerHTML = '';
 
             data.forEach(m => renderMiniMessage(m, friendId));
+            // 🔥 FIX: scroll sau khi render xong toàn bộ
+            setTimeout(() => {
+                box.scrollTop = box.scrollHeight;
+            }, 50);
         });
 }
 function closeChat(friendId) {
