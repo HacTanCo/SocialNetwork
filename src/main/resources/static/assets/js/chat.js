@@ -27,8 +27,8 @@ function connectWS() {
 
             const message = JSON.parse(msg.body);
 
-            // 🔥 nếu là event seen (không có content)
-            if (!message.content && message.senderId) {
+			// ✅ chỉ check seen khi KHÔNG có content + KHÔNG có media
+			if (!message.content && !message.mediaUrl && message.senderId) {
                 updateSeenStatus(message.senderId);
                 return;
             }
@@ -232,7 +232,9 @@ function openChatBox(btn) {
 				<input type="file" 
 			           class="file-input" 
 			           accept="image/*,video/*"
+					   multiple
 			           onchange="sendFile(${friendId}, this)">
+				
 			</label>
 	        <button onclick="sendMiniMessage(${friendId})">➤</button>
 	    </div>
@@ -245,43 +247,46 @@ function openChatBox(btn) {
 
 }
 function sendFile(friendId, input) {
-    const file = input.files[0];
-    if (!file) return;
+    const files = input.files;
+    if (!files || files.length === 0) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    // 🔥 lấy CSRF
     const token = document.querySelector('meta[name="_csrf"]').content;
     const header = document.querySelector('meta[name="_csrf_header"]').content;
 
-    fetch("/chat/upload", {
-        method: "POST",
-        body: formData,
-        headers: {
-            [header]: token   // 🔥 add CSRF vào đây
-        }
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Upload failed: " + res.status);
-        return res.text();
-    })
-    .then(url => {
+    // 🔥 loop từng file
+    Array.from(files).forEach(file => {
 
-        let type = "IMAGE";
-        if (file.type.startsWith("video")) {
-            type = "VIDEO";
-        }
+        const formData = new FormData();
+        formData.append("file", file);
 
-        stompClient.send("/app/chat.send", {}, JSON.stringify({
-            senderId: currentUserId,
-            receiverId: friendId,
-            content: "",
-            mediaUrl: url,
-            type: type
-        }));
-    })
-    .catch(err => console.error(err));
+        fetch("/chat/upload", {
+            method: "POST",
+            body: formData,
+            headers: {
+                [header]: token
+            }
+        })
+        .then(res => res.text())
+        .then(url => {
+
+            let type = "IMAGE";
+            if (file.type.startsWith("video")) {
+                type = "VIDEO";
+            }
+
+            // 🔥 gửi từng message
+            stompClient.send("/app/chat.send", {}, JSON.stringify({
+                senderId: currentUserId,
+                receiverId: friendId,
+                content: "",
+                mediaUrl: url,
+                type: type
+            }));
+
+        })
+        .catch(err => console.error(err));
+
+    });
 
     input.value = "";
 }
