@@ -62,11 +62,16 @@ function connectWS() {
                 }
             }
 
-            // ✅ chỉ check seen khi KHÔNG có content + KHÔNG có media
-            if (!message.content && !message.mediaUrl && message.senderId) {
-                updateSeenStatus(message.senderId);
-                return;
-            }
+			if (!message.content && !message.mediaUrl && message.senderId) {
+
+			    // 🔥 CHỈ xử lý nếu mình là người nhận seen
+			    if (message.receiverId == currentUserId) {
+			        updateSeenStatus(message.senderId);
+			        //clearBadge(message.senderId);
+			    }
+
+			    return;
+			}
 
             const friendId = message.senderId == currentUserId
                 ? message.receiverId
@@ -84,7 +89,15 @@ function connectWS() {
 
     });
 }
+function showNewMessageBadge(friendId) {
+    const badge = document.getElementById("badge-" + friendId);
+    if (!badge) return;
 
+    badge.style.display = "inline-block";
+
+    let count = parseInt(badge.innerText) || 0;
+    badge.innerText = count + 1;
+}
 function updateSeenStatus(friendId) {
     const box = document.getElementById("chat-body-" + friendId);
     if (!box) return;
@@ -226,12 +239,18 @@ function scrollToBottom(force = false) {
 
 // chatbox 
 const openChats = {};
+function clearBadge(friendId) {
+    const badge = document.getElementById("badge-" + friendId);
+    if (!badge) return;
 
+    badge.innerText = "0";
+    badge.style.display = "none";
+}
 function openChatBox(btn) {
     const friendId = btn.getAttribute("data-id");
     const friendName = btn.getAttribute("data-name");
     const friendAvatar = btn.getAttribute("data-avatar");
-
+	clearBadge(friendId);
     if (openChats[friendId]) return;
 
     const container = document.getElementById("chatContainer");
@@ -278,7 +297,7 @@ function openChatBox(btn) {
 
     container.appendChild(box);
     openChats[friendId] = true;
-
+	
     loadMiniChat(friendId);
 
     // 🔥 focus input sau khi render
@@ -286,6 +305,7 @@ function openChatBox(btn) {
         const input = box.querySelector("input");
         if (input) input.focus();
     }, 100);
+	
 
 }
 function sendFile(friendId, input) {
@@ -295,7 +315,6 @@ function sendFile(friendId, input) {
     const token = document.querySelector('meta[name="_csrf"]').content;
     const header = document.querySelector('meta[name="_csrf_header"]').content;
 
-    // 🔥 loop từng file
     Array.from(files).forEach(file => {
 
         const formData = new FormData();
@@ -308,30 +327,63 @@ function sendFile(friendId, input) {
                 [header]: token
             }
         })
-            .then(res => res.text())
-            .then(url => {
+		.then(async res => {
+		    const data = await res.json(); // ✅ luôn parse JSON
 
-                let type = "IMAGE";
-                if (file.type.startsWith("video")) {
-                    type = "VIDEO";
-                }
+		    if (!res.ok || data.error) {
+		        throw new Error(data.error || "Upload thất bại");
+		    }
 
-                // 🔥 gửi từng message
-                stompClient.send("/app/chat.send", {}, JSON.stringify({
-                    senderId: currentUserId,
-                    receiverId: friendId,
-                    content: "",
-                    mediaUrl: url,
-                    type: type
-                }));
+		    return data;
+		})
+		.then(data => {
 
-            })
-            .catch(err => console.error(err));
+		    const url = data.url; // ✅ lấy đúng field
+
+		    let type = "IMAGE";
+		    if (file.type.startsWith("video")) {
+		        type = "VIDEO";
+		    }
+
+		    stompClient.send("/app/chat.send", {}, JSON.stringify({
+		        senderId: currentUserId,
+		        receiverId: friendId,
+		        content: "",
+		        mediaUrl: url,
+		        type: type
+		    }));
+
+		})
+		.catch(err => {
+		    showError(err.message);
+		});
 
     });
 
     input.value = "";
 }
+function showError(msg) {
+    const div = document.createElement("div");
+    div.innerText = msg;
+
+    div.style = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #dc3545;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        z-index: 99999;
+        font-size: 13px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    `;
+
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 3000);
+}
+
 function openImagePreview(src) {
     const modal = document.getElementById("imagePreviewModal");
     const img = document.getElementById("previewImg");
@@ -611,6 +663,7 @@ function loadMiniChat(friendId) {
     fetch('/chat/' + friendId)
         .then(res => res.json())
         .then(data => {
+			
             const box = document.getElementById("chat-body-" + friendId);
             box.innerHTML = '';
 
@@ -627,3 +680,19 @@ function closeChat(friendId) {
     const box = document.getElementById("chat-box-" + friendId);
     if (box) box.remove();
 }
+document.addEventListener("DOMContentLoaded", function () {
+    fetch(`/chat/unread-count?userId=${currentUserId}`)
+        .then(res => res.json())
+        .then(data => {
+
+            Object.entries(data).forEach(([friendId, count]) => {
+                const badge = document.getElementById("badge-" + friendId);
+
+                if (badge && count > 0) {
+                    badge.innerText = count;
+                    badge.style.display = "inline-block";
+                }
+            });
+
+        });
+});

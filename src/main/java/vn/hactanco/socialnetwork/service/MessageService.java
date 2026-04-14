@@ -1,7 +1,9 @@
 package vn.hactanco.socialnetwork.service;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +51,18 @@ public class MessageService {
 	public MessageDTO getById(Long id) {
 		Message m = messageRepository.findById(id).orElseThrow();
 		return toDTO(m);
+	}
+
+	public Map<Long, Integer> countUnreadByUser(Long userId) {
+		List<Object[]> rows = messageRepository.countUnreadGroupBySender(userId);
+
+		Map<Long, Integer> result = new HashMap<>();
+		for (Object[] r : rows) {
+			Long senderId = (Long) r[0];
+			Integer count = ((Number) r[1]).intValue();
+			result.put(senderId, count);
+		}
+		return result;
 	}
 
 	public MessageDTO save(MessageDTO dto) {

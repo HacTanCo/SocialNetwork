@@ -3,6 +3,7 @@ package vn.hactanco.socialnetwork.controller;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -67,14 +68,27 @@ public class MessageController {
 	@ResponseBody
 	public List<MessageDTO> getChat(@PathVariable Long friendId, HttpSession session) {
 		User currentUser = (User) session.getAttribute("USER");
-		// 🔥 mark seen
+
+		// mark read
 		messageService.markAsRead(currentUser.getId(), friendId);
+
+		// 🔥 gửi seen event cho friend
+		MessageDTO seenEvent = MessageDTO.builder().senderId(currentUser.getId()) // A
+				.receiverId(friendId) // B
+				.build();
+
+		messagingTemplate.convertAndSend("/topic/chat/" + friendId, seenEvent);
+
 		return messageService.getChat(currentUser.getId(), friendId);
 	}
 
 	@PostMapping("/chat/upload")
 	@ResponseBody
-	public String uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+	public Map<String, String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+
+		if (file.getSize() > 10 * 1024 * 1024) {
+			return Map.of("error", "File quá lớn (tối đa 10MB)");
+		}
 
 		String original = file.getOriginalFilename();
 		String ext = original.substring(original.lastIndexOf(".") + 1);
@@ -82,7 +96,7 @@ public class MessageController {
 		List<String> allow = List.of("jpg", "jpeg", "png", "gif", "webp", "mp4", "webm");
 
 		if (!allow.contains(ext.toLowerCase())) {
-			throw new RuntimeException("File không hợp lệ");
+			return Map.of("error", "File không hợp lệ");
 		}
 
 		String fileName = UUID.randomUUID() + "." + ext;
@@ -94,7 +108,7 @@ public class MessageController {
 		File dest = new File(dir, fileName);
 		file.transferTo(dest);
 
-		return "/uploads/chat/" + fileName;
+		return Map.of("url", "/uploads/chat/" + fileName);
 	}
 
 	@MessageMapping("/chat.delete")
@@ -117,5 +131,11 @@ public class MessageController {
 		// 🔥 gửi cho cả 2 user
 		messagingTemplate.convertAndSend("/topic/chat/" + updated.getSenderId(), updated);
 		messagingTemplate.convertAndSend("/topic/chat/" + updated.getReceiverId(), updated);
+	}
+
+	@GetMapping("/chat/unread-count")
+	@ResponseBody
+	public Map<Long, Integer> getUnreadCount(@RequestParam Long userId) {
+		return messageService.countUnreadByUser(userId);
 	}
 }

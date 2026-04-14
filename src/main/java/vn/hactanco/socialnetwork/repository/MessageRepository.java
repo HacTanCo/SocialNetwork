@@ -19,4 +19,13 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 			    ORDER BY m.createdAt ASC
 			""")
 	List<Message> getChat(@Param("userId") Long userId, @Param("friendId") Long friendId);
+
+	@Query("""
+			    SELECT m.sender.id, COUNT(m)
+			    FROM Message m
+			    WHERE m.receiver.id = :userId AND m.isRead = false
+			    GROUP BY m.sender.id
+			""")
+	List<Object[]> countUnreadGroupBySender(@Param("userId") Long userId);
+
 }
