@@ -2,6 +2,7 @@ package vn.hactanco.socialnetwork.controller;
 
 import java.util.Collection;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
@@ -253,6 +255,18 @@ public class AuthController {
 		redirectAttributes.addFlashAttribute("success",
 				"Mật khẩu đã được đặt lại thành công! Bạn có thể đăng nhập ngay bây giờ.");
 		return "redirect:/login";
+	}
+
+	@PostMapping("/change-password")
+	@ResponseBody
+	public ResponseEntity<String> changePassword(@RequestParam String oldPassword, @RequestParam String newPassword,
+			Authentication authentication) {
+
+		String email = authentication.getName();
+
+		authService.changePassword(email, oldPassword, newPassword);
+
+		return ResponseEntity.ok("OK");
 	}
 
 }

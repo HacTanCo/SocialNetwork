@@ -134,4 +134,23 @@ public class AuthService {
 		this.userRepository.save(user);
 	}
 
+	public void changePassword(String email, String oldPassword, String newPassword) {
+
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+
+		// check mật khẩu cũ
+		if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+			throw new ResourceNotFoundException("Mật khẩu hiện tại không đúng");
+		}
+
+		// check trùng mật khẩu mới
+		if (passwordEncoder.matches(newPassword, user.getPassword())) {
+			throw new ResourceNotFoundException("Mật khẩu mới không được trùng mật khẩu cũ");
+		}
+
+		user.setPassword(passwordEncoder.encode(newPassword));
+
+		userRepository.save(user);
+	}
 }
