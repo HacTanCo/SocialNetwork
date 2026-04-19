@@ -53,23 +53,20 @@ public class FriendshipController {
 			model.addAttribute("pending", pending.getContent());
 			model.addAttribute("pendingPage", pending);
 		} else {
-			// ✅ FRIEND
+
 			Page<User> friends = friendshipService.getFriendPhanTrang(userId, friendPage, size);
 			model.addAttribute("friends", friends.getContent());
 			model.addAttribute("friendPage", friends);
 
-			// ✅ SUGGESTION (phải tạo thêm repo)
 			Page<UserSuggestionResponseDTO> suggestions = friendshipService.getSuggestionPhanTrang(userId, suggestPage,
 					size);
 			model.addAttribute("suggestions", suggestions.getContent());
 			model.addAttribute("suggestPage", suggestions);
 
-			// ✅ SENT
 			Page<User> sent = friendshipService.getSentPhanTrang(userId, sentPage, size);
 			model.addAttribute("sent", sent.getContent());
 			model.addAttribute("sentPage", sent);
 
-			// ✅ PENDING
 			Page<User> pending = friendshipService.getPendingPhanTrang(userId, pendingPage, size);
 			model.addAttribute("pending", pending.getContent());
 			model.addAttribute("pendingPage", pending);

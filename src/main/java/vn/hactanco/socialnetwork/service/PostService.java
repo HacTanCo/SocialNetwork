@@ -37,6 +37,10 @@ public class PostService {
 	@Value("${file.upload-dir}")
 	private String uploadDir;
 
+	public long countPostByUserId(Long userId) {
+		return postRepository.countByUser_Id(userId);
+	}
+
 	public void createPost(String content, MultipartFile[] files, User user) throws IOException {
 
 		boolean hasContent = content != null && !content.trim().isEmpty();
@@ -74,9 +78,6 @@ public class PostService {
 		if (files != null) {
 
 			for (MultipartFile file : files) {
-
-				if (file.isEmpty())
-					continue;
 
 				String originalName = file.getOriginalFilename();
 
@@ -162,20 +163,21 @@ public class PostService {
 		// 1. lấy id trước (tránh N+1)
 		Page<Long> postIdsPage = postRepository.findPostIds(pageable);
 		List<Long> ids = postIdsPage.getContent();
-
+		for (Long id : ids) {
+			System.out.println("id: " + id);
+		}
 		// 2. fetch post + user + media
 		List<Post> posts = postRepository.findByIdInWithUserAndMedia(ids);
-
 		Map<Long, Post> map = posts.stream().collect(Collectors.toMap(Post::getId, p -> p));
 
-		List<Post> sortedPosts = ids.stream().map(map::get).toList();
+		List<Post> sortPost = ids.stream().map(map::get).toList();
 
 		// 🔥 3. COUNT LIKE (1 query)
 		Map<Long, Long> likeCountMap = likeRepository.countLikesByPostIds(ids).stream()
 				.collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
 
 		List<Long> postIds = posts.stream().map(Post::getId).toList();
-
+		System.out.println("postIds: " + postIds);
 		Map<Long, Long> commentCountMap = commentRepository.countCommentsByPostIds(postIds).stream()
 				.collect(Collectors.toMap(obj -> (Long) obj[0], obj -> (Long) obj[1]));
 
@@ -183,7 +185,7 @@ public class PostService {
 		List<Long> likedPostIds = likeRepository.findLikedPostIds(currentUser.getId(), ids);
 
 		// 5. map DTO
-		return sortedPosts.stream().map(post -> {
+		return sortPost.stream().map(post -> {
 
 			PostResponseDTO dto = convertToDTO(post);
 			// getOrDefault: Lấy value theo key, nếu key không tồn tại thì trả về giá trị

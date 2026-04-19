@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import vn.hactanco.socialnetwork.dto.ListFriendFromProfileResponseDTO;
+import vn.hactanco.socialnetwork.dto.ListFriendFromProfileResponseDTO1;
 import vn.hactanco.socialnetwork.dto.UserSuggestionResponseDTO;
 import vn.hactanco.socialnetwork.enums.FriendshipStatus;
 import vn.hactanco.socialnetwork.model.Friendship;
@@ -107,6 +108,17 @@ public class FriendshipService {
 
 		return friendsOfProfile.stream().map(u -> ListFriendFromProfileResponseDTO.builder().userId(u.getId())
 				.name(u.getName()).avatar(u.getAvatar()).isFriend(isFriend(currentUserId, u.getId())).build()).toList();
+	}
+
+	public List<ListFriendFromProfileResponseDTO1> getFriendsDTOwithPending(Long profileUserId, Long currentUserId) {
+
+		List<User> friendsOfProfile = getFriends(profileUserId);
+
+		return friendsOfProfile.stream()
+				.map(u -> ListFriendFromProfileResponseDTO1.builder().userId(u.getId()).name(u.getName())
+						.avatar(u.getAvatar()).isFriend(isFriend(currentUserId, u.getId()))
+						.isPending(isPending(currentUserId, u.getId())).build())
+				.toList();
 	}
 
 	public Page<User> searchFriendsPage(Long userId, String keyword, int page, int size) {

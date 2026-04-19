@@ -1,43 +1,27 @@
 console.log("Chat");
-let stompClient = null;
-
-// connect websocket
-/*function connectWS() {
-    const socket = new SockJS('/ws');
-    stompClient = Stomp.over(socket);
-
-    stompClient.connect({}, function () {
-
-        // subscribe nhận tin nhắn
-        stompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
-            const message = JSON.parse(msg.body);
-            renderMessage(message);
-            // Không gọi scrollBottom() ở đây nữa
-        });
-
-    });
-}*/
+let chatStompClient = null;
+let totalUnread = 0;
 function connectWS() {
     const socket = new SockJS('/ws');
-    stompClient = Stomp.over(socket);
+    chatStompClient = Stomp.over(socket);
 
-    stompClient.connect({}, function () {
+    chatStompClient.connect({}, function () {
 
-        stompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
+        chatStompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
 
             const message = JSON.parse(msg.body);
-            // 🔥 HANDLE DELETE
+            //  HANDLE DELETE
             if (message.id && !message.content && !message.mediaUrl && !message.createdAt) {
 
                 const existing = document.querySelector(`[data-id='${message.id}']`);
                 if (existing) {
-                    existing.remove(); // 🔥 xóa luôn khỏi UI
+                    existing.remove(); //  xóa luôn khỏi UI
                 }
 
                 return;
             }
             // ====================== HANDLE UPDATE ======================
-            // 🔥 nếu message đã tồn tại → update UI, không render mới
+            //  nếu message đã tồn tại → update UI, không render mới
             if (message.id && message.content && message.createdAt) {
 
                 const existing = document.querySelector(`[data-id='${message.id}']`);
@@ -46,10 +30,10 @@ function connectWS() {
                     if (!existing.isConnected) return;
 
                     const bubble = existing.querySelector(".chat-bubble");
-                    if (!bubble) return; // 🔥 FIX 1: chặn null
+                    if (!bubble) return; //  FIX 1: chặn null
 
                     const contentDiv = bubble.querySelector(".msg-content");
-                    if (!contentDiv) return; // 🔥 FIX 2: chặn null
+                    if (!contentDiv) return; //  FIX 2: chặn null
 
                     contentDiv.innerText = message.content;
 
@@ -64,7 +48,7 @@ function connectWS() {
 
 			if (!message.content && !message.mediaUrl && message.senderId) {
 
-			    // 🔥 CHỈ xử lý nếu mình là người nhận seen
+			    //  CHỈ xử lý nếu mình là người nhận seen
 			    if (message.receiverId == currentUserId) {
 			        updateSeenStatus(message.senderId);
 			        //clearBadge(message.senderId);
@@ -78,17 +62,21 @@ function connectWS() {
                 : message.senderId;
 
             if (!openChats[friendId]) {
-                // 🔥 chỉ show notification thôi
+                //  chỉ show notification thôi
                 showNewMessageBadge(friendId);
+				
+				totalUnread++; 
+				updateTotalBadge(totalUnread);
             }
 
-            // 🔥 render mini chat
+            //  render mini chat
             renderMiniMessage(message, friendId);
 
         });
 
     });
 }
+// v
 function showNewMessageBadge(friendId) {
     const badge = document.getElementById("badge-" + friendId);
     if (!badge) return;
@@ -98,20 +86,22 @@ function showNewMessageBadge(friendId) {
     let count = parseInt(badge.innerText) || 0;
     badge.innerText = count + 1;
 }
+// v
 function updateSeenStatus(friendId) {
     const box = document.getElementById("chat-body-" + friendId);
     if (!box) return;
 
-    // 🔥 gọi lại logic set status
+    //  gọi lại logic set status
     updateLastMessageStatus(box, "Đã xem");
 }
+// v
 function updateLastMessageStatus(box, status) {
 
-    // 🔥 xóa tất cả status cũ
+    //  xóa tất cả status cũ
     const allStatus = box.querySelectorAll(".msg-status");
     allStatus.forEach(e => e.remove());
 
-    // 🔥 tìm tất cả tin của mình
+    //  tìm tất cả tin của mình
     const myMessages = box.querySelectorAll(".msg-row.me");
     if (myMessages.length === 0) return;
 
@@ -119,7 +109,7 @@ function updateLastMessageStatus(box, status) {
 
     const bubble = lastMsg.querySelector(".chat-bubble");
 
-    // 🔥 add status mới
+    //  add status mới
     const statusEl = document.createElement("small");
     statusEl.className = "msg-status";
     statusEl.style.cssText = "font-size:9px; opacity:0.6; display:block; text-align:right;";
@@ -128,93 +118,8 @@ function updateLastMessageStatus(box, status) {
     bubble.appendChild(statusEl);
 }
 connectWS();
-/*function handleOpenChat(btn) {
-    const id = btn.getAttribute("data-id");
-    const name = btn.getAttribute("data-name");
 
-    openChat(id, name);
-}*/
-// mở chat
-/*function openChat(friendId, friendName) {
-    document.getElementById('chatFriendId').value = friendId;
-    document.getElementById('chatFriendName').innerText = friendName;
-
-    loadChat(friendId);
-}*/
-// bind sau khi load
-/*document.addEventListener("DOMContentLoaded", function() {
-    const input = document.getElementById("chatInput");
-
-    input.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-});*/
-// load lịch sử
-/*function loadChat(friendId) {
-    fetch('/chat/' + friendId)
-        .then(res => res.json())
-        .then(data => {
-            const box = document.getElementById('chatMessages');
-            box.innerHTML = '';
-
-            data.forEach(renderMessage);
-
-            // Scroll xuống cuối khi load lịch sử
-            setTimeout(() => scrollToBottom(true), 50);
-        })
-        .catch(err => console.error("Load chat error:", err));
-}
-*/
-// gửi tin nhắn
-/*function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const content = input.value.trim();
-    if (!content) return;
-
-    const friendId = document.getElementById('chatFriendId').value;
-
-    stompClient.send("/app/chat.send", {}, JSON.stringify({
-        content: content,
-        senderId: currentUserId,
-        receiverId: friendId
-    }));
-
-    input.value = '';
-
-    // Không cần setTimeout ở đây nữa vì renderMessage sẽ xử lý
-}*/
-
-// render tin nhắn
-/*function renderMessage(m) {
-    const box = document.getElementById('chatMessages');
-    if (!box) return;
-
-    const isMe = m.senderId == currentUserId;
-
-    const div = document.createElement('div');
-    div.className = "d-flex " + (isMe ? "justify-content-end" : "justify-content-start");
-
-    div.innerHTML = `
-        <div class="d-flex ${isMe ? 'flex-row-reverse' : ''} align-items-end gap-2">
-            <img src="${m.senderAvatar || '/default-avatar.png'}" 
-                 class="rounded-circle" width="35" height="35" 
-                 onerror="this.src='/default-avatar.png'">
-            <div class="${isMe ? 'bg-primary text-white' : 'bg-white border'} px-3 py-2 rounded-3">
-                ${m.content}
-            </div>
-        </div>
-    `;
-
-    box.appendChild(div);
-
-    // Luôn scroll xuống khi là tin nhắn của mình
-    // Khi nhận tin thì chỉ scroll nếu đang ở gần cuối
-    scrollToBottom(isMe);
-}*/
-
+// v
 function scrollToBottom(force = false) {
     const box = document.getElementById('chatMessages');
     if (!box) return;
@@ -239,6 +144,7 @@ function scrollToBottom(force = false) {
 
 // chatbox 
 const openChats = {};
+// v
 function clearBadge(friendId) {
     const badge = document.getElementById("badge-" + friendId);
     if (!badge) return;
@@ -246,11 +152,19 @@ function clearBadge(friendId) {
     badge.innerText = "0";
     badge.style.display = "none";
 }
+// V
 function openChatBox(btn) {
     const friendId = btn.getAttribute("data-id");
     const friendName = btn.getAttribute("data-name");
     const friendAvatar = btn.getAttribute("data-avatar");
+	const badge = document.getElementById("badge-" + friendId);
+	if (badge) {
+	    const count = parseInt(badge.innerText) || 0;
+	    totalUnread -= count;
+	}
+	
 	clearBadge(friendId);
+	updateTotalBadge(totalUnread);
     if (openChats[friendId]) return;
 
     const container = document.getElementById("chatContainer");
@@ -300,7 +214,7 @@ function openChatBox(btn) {
 	
     loadMiniChat(friendId);
 
-    // 🔥 focus input sau khi render
+    //  focus input sau khi render
     setTimeout(() => {
         const input = box.querySelector("input");
         if (input) input.focus();
@@ -308,6 +222,7 @@ function openChatBox(btn) {
 	
 
 }
+// v
 function sendFile(friendId, input) {
     const files = input.files;
     if (!files || files.length === 0) return;
@@ -345,7 +260,7 @@ function sendFile(friendId, input) {
 		        type = "VIDEO";
 		    }
 
-		    stompClient.send("/app/chat.send", {}, JSON.stringify({
+		    chatStompClient.send("/app/chat/send", {}, JSON.stringify({
 		        senderId: currentUserId,
 		        receiverId: friendId,
 		        content: "",
@@ -362,6 +277,7 @@ function sendFile(friendId, input) {
 
     input.value = "";
 }
+// v
 function showError(msg) {
     const div = document.createElement("div");
     div.innerText = msg;
@@ -383,7 +299,7 @@ function showError(msg) {
 
     setTimeout(() => div.remove(), 3000);
 }
-
+// v
 function openImagePreview(src) {
     const modal = document.getElementById("imagePreviewModal");
     const img = document.getElementById("previewImg");
@@ -391,7 +307,7 @@ function openImagePreview(src) {
     img.src = src;
     modal.style.display = "flex";
 }
-
+// v
 function closeImagePreview() {
     document.getElementById("imagePreviewModal").style.display = "none";
 }
@@ -400,12 +316,12 @@ function handleFocusMini(friendId) {
     const box = document.getElementById("chat-body-" + friendId);
     if (!box) return;
 
-    // 🔥 tìm tin NHẬN (không phải của mình)
+    //  tìm tin NHẬN (không phải của mình)
     const messages = box.querySelectorAll(".msg-row:not(.me)");
 
     if (messages.length === 0) return;
 
-    // 🔥 kiểm tra có tin chưa read không (dựa vào status UI hoặc data)
+    //  kiểm tra có tin chưa read không (dựa vào status UI hoặc data)
     let hasUnread = false;
 
     messages.forEach(msg => {
@@ -417,34 +333,36 @@ function handleFocusMini(friendId) {
     if (!hasUnread) return; // ❌ không gửi seen nếu không có tin mới
 
     // ✅ mới gửi seen
-    stompClient.send("/app/chat.seen", {}, JSON.stringify({
+    chatStompClient.send("/app/chat/seen", {}, JSON.stringify({
         senderId: friendId,
         receiverId: currentUserId
     }));
 
-    // 🔥 mark UI là đã đọc
+    //  mark UI là đã đọc
     messages.forEach(msg => msg.classList.add("read"));
 }
+// v
 function sendMiniMessage(friendId) {
     const input = document.querySelector(`#chat-box-${friendId} input`);
     const content = input.value.trim();
     if (!content) return;
 
-    stompClient.send("/app/chat.send", {}, JSON.stringify({
+    chatStompClient.send("/app/chat/send", {}, JSON.stringify({
         content: content,
         senderId: currentUserId,
         receiverId: friendId
     }));
-
+	
     input.value = '';
 }
+// v
 function handleEnterMini(e, friendId) {
     if (e.key === "Enter") {
         e.preventDefault();
         sendMiniMessage(friendId);
     }
 }
-
+// v
 function renderMiniMessage(m, friendId) {
 
     const box = document.getElementById("chat-body-" + friendId);
@@ -458,9 +376,8 @@ function renderMiniMessage(m, friendId) {
             status = "Đã xem";
         } else if (m.delivered) {
             status = "Đã nhận";
-        } else {
-            status = "Đã gửi";
-        }
+			}
+        
     }
     let mediaHtml = "";
 
@@ -482,10 +399,10 @@ function renderMiniMessage(m, friendId) {
     const row = document.createElement("div");
     row.className = "msg-row " + (isMe ? "me" : "");
 
-    // 🔥 THÊM: gắn id để sau này update đúng message
+    // THÊM: gắn id để sau này update đúng message
     row.setAttribute("data-id", m.id);
-    // 🔥 THÊM: nút sửa (chỉ hiện với message của mình + TEXT)
-    let actions = ""; // 🔥 QUAN TRỌNG
+    // THÊM: nút sửa (chỉ hiện với message của mình + TEXT)
+    let actions = ""; // QUAN TRỌNG
 
     if (isMe) {
         actions = `
@@ -537,7 +454,7 @@ function renderMiniMessage(m, friendId) {
 
     box.appendChild(row);
     box.scrollTop = box.scrollHeight;
-    // 🔥 chỉ giữ status ở tin cuối của mình
+    //  chỉ giữ status ở tin cuối của mình
     if (isMe) {
         const finalStatus = m.read ? "Đã xem"
             : m.delivered ? "Đã nhận"
@@ -545,17 +462,18 @@ function renderMiniMessage(m, friendId) {
 
         updateLastMessageStatus(box, finalStatus);
     }
-}
+}//v
 function deleteMessage(id) {
 
     if (!confirm("Bạn có chắc muốn xóa tin nhắn này?")) return;
 
-    stompClient.send("/app/chat.delete", {}, JSON.stringify({
+    chatStompClient.send("/app/chat/delete", {}, JSON.stringify({
         id: id
     }));
 }
+// v
 function editMessage(id) {
-
+	// data-id nằm ở row.setAttribute("data-id", m.id);
     const row = document.querySelector(`[data-id='${id}']`);
     if (!row) return;
 
@@ -576,10 +494,10 @@ function editMessage(id) {
     input.focus();
 
     let isSaving = false;
-    let isHandled = false; // 🔥 KEY: chặn xử lý nhiều lần
+    let isHandled = false; //  KEY: chặn xử lý nhiều lần
 
     function safeReplace(newText) {
-        if (isHandled) return; // 🔥 chống double run
+        if (isHandled) return; //  chống double run
         isHandled = true;
 
         if (!input.parentNode) return;
@@ -602,9 +520,9 @@ function editMessage(id) {
 
             isSaving = true;
 
-            safeReplace(newContent); // 🔥 UI revert ngay
+            safeReplace(newContent); //  UI revert ngay
 
-            stompClient.send("/app/chat.update", {}, JSON.stringify({
+            chatStompClient.send("/app/chat/update", {}, JSON.stringify({
                 id: id,
                 content: newContent
             }));
@@ -612,17 +530,17 @@ function editMessage(id) {
 
         // ESC = cancel
         if (e.key === "Escape") {
-            safeReplace(oldText); // 🔥 chỉ gọi 1 lần duy nhất
+            safeReplace(oldText); //  chỉ gọi 1 lần duy nhất
         }
     });
 
     input.addEventListener("blur", function () {
         if (!isSaving) {
-            safeReplace(oldText); // 🔥 blur cũng dùng chung logic
+            safeReplace(oldText); //  blur cũng dùng chung logic
         }
     });
 }
-
+// v
 function formatTimeSmart(time) {
     const date = new Date(time);
     const now = new Date();
@@ -659,6 +577,7 @@ function formatTimeSmart(time) {
         year: "numeric"
     }) + " " + timeStr;
 }
+// v
 function loadMiniChat(friendId) {
     fetch('/chat/' + friendId)
         .then(res => res.json())
@@ -668,23 +587,25 @@ function loadMiniChat(friendId) {
             box.innerHTML = '';
 
             data.forEach(m => renderMiniMessage(m, friendId));
-            // 🔥 FIX: scroll sau khi render xong toàn bộ
+            //  FIX: scroll sau khi render xong toàn bộ
             setTimeout(() => {
                 box.scrollTop = box.scrollHeight;
             }, 50);
         });
 }
+// v
 function closeChat(friendId) {
     delete openChats[friendId];
 
     const box = document.getElementById("chat-box-" + friendId);
     if (box) box.remove();
 }
+// v
 document.addEventListener("DOMContentLoaded", function () {
     fetch(`/chat/unread-count?userId=${currentUserId}`)
         .then(res => res.json())
         .then(data => {
-
+			totalUnread = 0;
             Object.entries(data).forEach(([friendId, count]) => {
                 const badge = document.getElementById("badge-" + friendId);
 
@@ -692,7 +613,121 @@ document.addEventListener("DOMContentLoaded", function () {
                     badge.innerText = count;
                     badge.style.display = "inline-block";
                 }
+				totalUnread += count;
             });
-
+		    updateTotalBadge(totalUnread);
         });
 });
+function updateTotalBadge(total) {
+    const badge = document.getElementById("total-unread-badge");
+    if (!badge) return;
+
+    if (total > 0) {
+        badge.innerText = total;
+        badge.style.display = "inline-block";
+    } else {
+        badge.style.display = "none";
+    }
+}
+// connect websocket
+/*function connectWS() {
+    const socket = new SockJS('/ws');
+    chatStompClient = Stomp.over(socket);
+
+    chatStompClient.connect({}, function () {
+
+        // subscribe nhận tin nhắn
+        chatStompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
+            const message = JSON.parse(msg.body);
+            renderMessage(message);
+            // Không gọi scrollBottom() ở đây nữa
+        });
+
+    });
+}*/
+/*function handleOpenChat(btn) {
+    const id = btn.getAttribute("data-id");
+    const name = btn.getAttribute("data-name");
+
+    openChat(id, name);
+}*/
+// mở chat
+/*function openChat(friendId, friendName) {
+    document.getElementById('chatFriendId').value = friendId;
+    document.getElementById('chatFriendName').innerText = friendName;
+
+    loadChat(friendId);
+}*/
+// bind sau khi load
+/*document.addEventListener("DOMContentLoaded", function() {
+    const input = document.getElementById("chatInput");
+
+    input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+});*/
+// load lịch sử
+/*function loadChat(friendId) {
+    fetch('/chat/' + friendId)
+        .then(res => res.json())
+        .then(data => {
+            const box = document.getElementById('chatMessages');
+            box.innerHTML = '';
+
+            data.forEach(renderMessage);
+
+            // Scroll xuống cuối khi load lịch sử
+            setTimeout(() => scrollToBottom(true), 50);
+        })
+        .catch(err => console.error("Load chat error:", err));
+}
+*/
+// gửi tin nhắn
+/*function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const content = input.value.trim();
+    if (!content) return;
+
+    const friendId = document.getElementById('chatFriendId').value;
+
+    chatStompClient.send("/app/chat.send", {}, JSON.stringify({
+        content: content,
+        senderId: currentUserId,
+        receiverId: friendId
+    }));
+
+    input.value = '';
+
+    // Không cần setTimeout ở đây nữa vì renderMessage sẽ xử lý
+}*/
+
+// render tin nhắn
+/*function renderMessage(m) {
+    const box = document.getElementById('chatMessages');
+    if (!box) return;
+
+    const isMe = m.senderId == currentUserId;
+
+    const div = document.createElement('div');
+    div.className = "d-flex " + (isMe ? "justify-content-end" : "justify-content-start");
+
+    div.innerHTML = `
+        <div class="d-flex ${isMe ? 'flex-row-reverse' : ''} align-items-end gap-2">
+            <img src="${m.senderAvatar || '/default-avatar.png'}" 
+                 class="rounded-circle" width="35" height="35" 
+                 onerror="this.src='/default-avatar.png'">
+            <div class="${isMe ? 'bg-primary text-white' : 'bg-white border'} px-3 py-2 rounded-3">
+                ${m.content}
+            </div>
+        </div>
+    `;
+
+    box.appendChild(div);
+
+    // Luôn scroll xuống khi là tin nhắn của mình
+    // Khi nhận tin thì chỉ scroll nếu đang ở gần cuối
+    scrollToBottom(isMe);
+}*/

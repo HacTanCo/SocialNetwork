@@ -52,263 +52,257 @@
 			<!-- PROFILE HEADER -->
 			<div class="bg-white border rounded p-4 mb-4">
 
-			    <div class="row align-items-center">
+				<div class="row align-items-center">
 
-			        <!-- AVATAR -->
-			        <div class="col-4 text-center">
-						<img th:src="@{${profileUser.avatar}}" 
-						     class="rounded-circle"
-						     style="width:120px;height:120px;object-fit:cover; cursor:pointer;"
-						     data-bs-toggle="modal"
-						     data-bs-target="#viewAvatarModal">
-			        </div>
-
-			        <!-- INFO -->
-			        <div class="col-8">
-
-			            <!-- USERNAME + BUTTON -->
-						<div class="d-flex align-items-center gap-3 mb-2">
-
-						    <h4 class="mb-0" th:text="${profileUser.name}"></h4>
-
-						    <!-- Chính mình -->
-						    
-							<button th:if="${currentUser.id == profileUser.id}"  class="btn btn-outline-secondary btn-sm"
-							        data-bs-toggle="modal"
-							        data-bs-target="#editProfileModal">
-							    Chỉnh sửa
-							</button>
-
-						    <!-- Là bạn -->
-							<div th:if="${currentUser.id != profileUser.id and isFriend}" 
-							     class="dropdown">
-
-							    <button class="btn btn-secondary btn-sm dropdown-toggle" 
-							            type="button" 
-							            data-bs-toggle="dropdown">
-							        Bạn bè
-							    </button>
-
-							    <ul class="dropdown-menu">
-
-							        <li>
-							            <form method="post" th:action="@{/friend/remove-profile}">
-							                <input type="hidden" name="friend_id" th:value="${profileUser.id}">
-							                <button class="dropdown-item text-danger">
-							                    <i class="bi bi-person-x"></i> Hủy kết bạn
-							                </button>
-							            </form>
-							        </li>
-
-							    </ul>
-							</div>
-							<!-- Nếu đã gửi lời mời -->
-							<button th:if="${currentUser.id != profileUser.id and !isFriend and isPending}" 
-							        class="btn btn-outline-primary btn-sm"
-							        th:attr="onclick='toggleFollow(this, ' + ${profileUser.id} + ')'">
-							    Hủy lời mời
-							</button>
-							<!-- Nếu chưa có gì -->
-							<button th:if="${currentUser.id != profileUser.id and !isFriend and !isPending}" 
-							        class="btn btn-outline-primary btn-sm"
-							        th:attr="onclick='toggleFollow(this, ' + ${profileUser.id} + ')'">
-							    Kết bạn
-							</button>
-
-						</div>
-
-			            <!-- STATS -->
-			            <div class="d-flex gap-4 mb-2">
-
-			                <div>
-			                    <strong th:text="${posts.size()}">0</strong> bài viết
-			                </div>
-
-							<div style="cursor:pointer;" onclick="openFriendsModal()">
-							    <strong th:text="${friendCount}">0</strong> bạn bè
-							</div>
-
-			            </div>
-
-			            <!-- BIO -->
-						<div>
-						    <div th:text="${profileUser.bio}"></div>
-						</div>
-
-			        </div>
-
-			    </div>
-
-			</div>
-			
-			<div id="feed">
-			<!-- POSTS -->
-			<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white" th:attr="data-post-id=${post.postId}">
-
-				<!-- HEADER -->
-				<div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-
-					<!-- Bên trái: avatar + tên + thời gian -->
-					<div class="d-flex align-items-center">
-
-						<img th:src="@{${post.userAvatar}}" class="rounded-circle me-2"
-							style="width:40px;height:40px;">
-
-						<div>
-
-							<div class="fw-bold" th:text="${post.userName}"></div>
-
-							<small class="text-muted"
-								th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
-							</small>
-
-						</div>
-
+					<!-- AVATAR -->
+					<div class="col-4 text-center">
+						<img th:src="@{${profileUser.avatar}}" class="rounded-circle"
+							style="width:120px;height:120px;object-fit:cover; cursor:pointer;" data-bs-toggle="modal"
+							data-bs-target="#viewAvatarModal">
 					</div>
 
-					<!-- Bên phải: 3 chấm -->
-					<div class="dropdown">
+					<!-- INFO -->
+					<div class="col-8">
 
-						<button class="btn p-0 border-0 text-muted" type="button" data-bs-toggle="dropdown">
-							<i class="bi bi-three-dots fs-5"></i>
-						</button>
+						<!-- USERNAME + BUTTON -->
+						<div class="d-flex align-items-center gap-3 mb-2">
 
-						<ul class="dropdown-menu dropdown-menu-end"
-							style="border: 1px solid #dbdbdb; border-radius: 8px;">
+							<h4 class="mb-0" th:text="${profileUser.name}"></h4>
 
-							<!-- Chủ bài -->
-							<li th:if="${session.USER.id == post.userId}">
-								<button class="dropdown-item" type="button" onclick="editPost(this)">
-									Sửa
+							<!-- Chính mình -->
+
+							<button th:if="${currentUser.id == profileUser.id}" class="btn btn-outline-secondary btn-sm"
+								data-bs-toggle="modal" data-bs-target="#editProfileModal">
+								Chỉnh sửa
+							</button>
+
+							<!-- Là bạn -->
+							<div th:if="${currentUser.id != profileUser.id and isFriend}" class="dropdown">
+
+								<button class="btn btn-secondary btn-sm dropdown-toggle" type="button"
+									data-bs-toggle="dropdown">
+									Bạn bè
 								</button>
-							</li>
 
-							<li th:if="${session.USER.id == post.userId}">
-								<button class="dropdown-item text-danger" type="button" onclick="deletePost(this)">
-									Xóa
-								</button>
-							</li>
+								<ul class="dropdown-menu">
 
-							<!-- Người khác -->
-							<li th:if="${session.USER.id != post.userId}">
-								<button class="dropdown-item text-warning" type="button" onclick="reportPost(this)">
-									Báo cáo bài viết
-								</button>
-							</li>
+									<li>
+										<form method="post" th:action="@{/friend/remove-profile}">
+											<input type="hidden" name="friend_id" th:value="${profileUser.id}">
+											<button class="dropdown-item text-danger">
+												<i class="bi bi-person-x"></i> Hủy kết bạn
+											</button>
+										</form>
+									</li>
 
-						</ul>
+								</ul>
+							</div>
+							<!-- Nếu đã gửi lời mời -->
+							<button th:if="${currentUser.id != profileUser.id and !isFriend and isPending}"
+								class="btn btn-outline-primary btn-sm"
+								th:attr="onclick='toggleFollow(this, ' + ${profileUser.id} + ')'">
+								Hủy lời mời
+							</button>
+							<!-- Nếu chưa có gì -->
+							<button th:if="${currentUser.id != profileUser.id and !isFriend and !isPending}"
+								class="btn btn-outline-primary btn-sm"
+								th:attr="onclick='toggleFollow(this, ' + ${profileUser.id} + ')'">
+								Kết bạn
+							</button>
+
+						</div>
+
+						<!-- STATS -->
+						<div class="d-flex gap-4 mb-2">
+
+							<div>
+								<strong th:text="${postCount}">0</strong> bài viết
+							</div>
+
+							<div style="cursor:pointer;" onclick="openFriendsModal()">
+								<strong th:text="${friendCount}">0</strong> bạn bè
+							</div>
+
+						</div>
+
+						<!-- BIO -->
+						<div>
+							<div th:text="${profileUser.bio}"></div>
+						</div>
 
 					</div>
 
 				</div>
 
+			</div>
 
-				<!-- MEDIA -->
-				<div th:if="${post.medias != null and !post.medias.isEmpty()}" class="post-media">
+			<div id="feed">
+				<!-- POSTS -->
+				<div th:each="post : ${posts}" class="post mb-4 border rounded bg-white"
+					th:attr="data-post-id=${post.postId}">
 
-					<!-- 1 MEDIA -->
-					<div th:if="${#lists.size(post.medias) == 1}" class="media-wrapper">
+					<!-- HEADER -->
+					<div class="d-flex justify-content-between align-items-center p-3 border-bottom">
 
-						<img th:if="${post.medias[0].mediaType.name() == 'IMAGE'}" th:src="${post.medias[0].mediaUrl}">
+						<!-- Bên trái: avatar + tên + thời gian -->
+						<div class="d-flex align-items-center">
 
-						<video th:if="${post.medias[0].mediaType.name() == 'VIDEO'}" controls>
-							<source th:src="${post.medias[0].mediaUrl}">
-						</video>
+							<img th:src="@{${post.userAvatar}}" class="rounded-circle me-2"
+								style="width:40px;height:40px;">
+
+							<div>
+
+								<div class="fw-bold" th:text="${post.userName}"></div>
+
+								<small class="text-muted"
+									th:text="${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)}">
+								</small>
+
+							</div>
+
+						</div>
+
+						<!-- Bên phải: 3 chấm -->
+						<div class="dropdown">
+
+							<button class="btn p-0 border-0 text-muted" type="button" data-bs-toggle="dropdown">
+								<i class="bi bi-three-dots fs-5"></i>
+							</button>
+
+							<ul class="dropdown-menu dropdown-menu-end"
+								style="border: 1px solid #dbdbdb; border-radius: 8px;">
+
+								<!-- Chủ bài -->
+								<li th:if="${session.USER.id == post.userId}">
+									<button class="dropdown-item" type="button" onclick="editPost(this)">
+										Sửa
+									</button>
+								</li>
+
+								<li th:if="${session.USER.id == post.userId}">
+									<button class="dropdown-item text-danger" type="button" onclick="deletePost(this)">
+										Xóa
+									</button>
+								</li>
+
+								<!-- Người khác -->
+								<li th:if="${session.USER.id != post.userId}">
+									<button class="dropdown-item text-warning" type="button" onclick="reportPost(this)">
+										Báo cáo bài viết
+									</button>
+								</li>
+
+							</ul>
+
+						</div>
 
 					</div>
 
 
-					<!-- MULTIPLE MEDIA -->
-					<div th:if="${#lists.size(post.medias) > 1}" th:id="'carousel-' + ${post.postId}"
-						class="carousel slide">
+					<!-- MEDIA -->
+					<div th:if="${post.medias != null and !post.medias.isEmpty()}" class="post-media">
 
-						<div class="carousel-inner">
+						<!-- 1 MEDIA -->
+						<div th:if="${#lists.size(post.medias) == 1}" class="media-wrapper">
 
-							<div th:each="media, stat : ${post.medias}"
-								th:class="|carousel-item ${stat.index == 0 ? 'active' : ''}|">
+							<img th:if="${post.medias[0].mediaType.name() == 'IMAGE'}"
+								th:src="${post.medias[0].mediaUrl}">
 
-								<div class="media-wrapper">
+							<video th:if="${post.medias[0].mediaType.name() == 'VIDEO'}" controls>
+								<source th:src="${post.medias[0].mediaUrl}">
+							</video>
 
-									<img th:if="${media.mediaType.name() == 'IMAGE'}" th:src="${media.mediaUrl}">
+						</div>
 
-									<video th:if="${media.mediaType.name() == 'VIDEO'}" controls>
-										<source th:src="${media.mediaUrl}">
-									</video>
+
+						<!-- MULTIPLE MEDIA -->
+						<div th:if="${#lists.size(post.medias) > 1}" th:id="'carousel-' + ${post.postId}"
+							class="carousel slide">
+
+							<div class="carousel-inner">
+
+								<div th:each="media, stat : ${post.medias}"
+									th:class="|carousel-item ${stat.index == 0 ? 'active' : ''}|">
+
+									<div class="media-wrapper">
+
+										<img th:if="${media.mediaType.name() == 'IMAGE'}" th:src="${media.mediaUrl}">
+
+										<video th:if="${media.mediaType.name() == 'VIDEO'}" controls>
+											<source th:src="${media.mediaUrl}">
+										</video>
+
+									</div>
 
 								</div>
 
 							</div>
 
+
+							<button class="carousel-control-prev" type="button"
+								th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="prev">
+
+								<span class="carousel-control-prev-icon"></span>
+
+							</button>
+
+							<button class="carousel-control-next" type="button"
+								th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="next">
+
+								<span class="carousel-control-next-icon"></span>
+
+							</button>
+
 						</div>
 
+					</div>
 
-						<button class="carousel-control-prev" type="button"
-							th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="prev">
 
-							<span class="carousel-control-prev-icon"></span>
+					<!-- ACTION -->
+					<div class="p-3">
 
-						</button>
+						<div class="d-flex gap-3 mb-2 align-items-center">
 
-						<button class="carousel-control-next" type="button"
-							th:data-bs-target="'#carousel-' + ${post.postId}" data-bs-slide="next">
+							<!-- LIKE -->
+							<div class="d-flex align-items-center gap-1">
+								<i class="bi fs-5"
+									th:classappend="${post.liked} ? 'bi-heart-fill text-danger' : 'bi-heart'"
+									th:onclick="'likePost(this, ' + ${post.postId} + ')'">
+								</i>
+								<span th:id="'like-count-' + ${post.postId}" th:text="${post.likeCount}">0</span>
+							</div>
 
-							<span class="carousel-control-next-icon"></span>
+							<!-- COMMENT -->
+							<div class="d-flex align-items-center gap-1">
+								<i class="bi bi-chat fs-5" th:onclick="'openCommentModal(' + ${post.postId} + ')'"> </i>
+								<span class="comment-count" th:attr="data-post-id=${post.postId}"
+									th:text="${post.commentCount}">
+									0
+								</span>
+							</div>
+							<!-- SHARE -->
+							<i class="bi bi-send fs-5"></i>
 
-						</button>
+							<!-- BOOKMARK -->
+							<i class="bi bi-bookmark ms-auto fs-5"></i>
+
+						</div>
+
+						<!-- CONTENT -->
+						<div>
+							<span class="fw-bold" th:text="${post.userName}"></span>
+							<span class="post-content" th:text="${post.content}"></span>
+						</div>
 
 					</div>
 
 				</div>
-
-
-				<!-- ACTION -->
-				<div class="p-3">
-
-				    <div class="d-flex gap-3 mb-2 align-items-center">
-
-				        <!-- LIKE -->
-				        <div class="d-flex align-items-center gap-1">
-				            <i class="bi fs-5"
-				               th:classappend="${post.liked} ? 'bi-heart-fill text-danger' : 'bi-heart'"
-				               th:onclick="'likePost(this, ' + ${post.postId} + ')'">
-				            </i>
-				            <span th:id="'like-count-' + ${post.postId}" th:text="${post.likeCount}">0</span>
-				        </div>
-
-				        <!-- COMMENT -->
-						<div class="d-flex align-items-center gap-1">
-							<i class="bi bi-chat fs-5"  th:onclick="'openCommentModal(' + ${post.postId} + ')'"> </i>
-							<span 
-							    class="comment-count" 
-							    th:attr="data-post-id=${post.postId}"
-							    th:text="${post.commentCount}">
-							    0
-							</span>
-						</div>
-				        <!-- SHARE -->
-				        <i class="bi bi-send fs-5"></i>
-
-				        <!-- BOOKMARK -->
-				        <i class="bi bi-bookmark ms-auto fs-5"></i>
-
-				    </div>
-
-				    <!-- CONTENT -->
-				    <div>
-				        <span class="fw-bold" th:text="${post.userName}"></span>
-				        <span class="post-content" th:text="${post.content}"></span>
-				    </div>
-
-				</div>
-
 			</div>
-		</div>
-		<div class="text-center mb-4">
+			<div class="text-center mb-4">
 
-			    <button class="btn btn-outline-primary"
-			            onclick="loadMore()">
-			        Load more
-			    </button>
+				<button class="btn btn-outline-primary" onclick="loadMore()">
+					Load more
+				</button>
 
 			</div>
 		</main>
@@ -328,8 +322,8 @@
 	<script th:src="@{/assets/js/like.js}"></script>
 	<script th:src="@{/assets/js/commentModal.js}"></script>
 	<script th:src="@{/assets/js/editDeltePost.js}"></script>
-	<!--<script th:src="@{/assets/js/change-password.js}"></script>
-	<script th:src="@{/assets/js/toggleChangePassword.js}"></script>-->
+	<script th:src="@{/assets/js/changePassword.js}"></script>
+	<script th:src="@{/assets/js/toggleChangePassword.js}"></script>
 	<script th:src="@{/assets/js/follow.js}"></script>
 	<script th:src="@{/assets/js/previewImage.js}"></script>
 	<script th:src="@{/assets/js/previewAvatarToHon.js}"></script>
@@ -355,24 +349,24 @@
 		});
 
 	</script>
+	<script>
+		window.currentUserId = [[${session.USER.id}]];
+	</script>
 	<!-- Xem avatar-->
-		<div class="modal fade" id="viewAvatarModal" tabindex="-1">
-		    <div class="modal-dialog modal-dialog-centered">
-		        <div class="modal-content bg-transparent border-0">
+	<div class="modal fade" id="viewAvatarModal" tabindex="-1">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content bg-transparent border-0">
 
-		            <!-- nút đóng -->
-		            <button type="button" 
-		                    class="btn-close position-absolute top-0 end-0 m-3 bg-white"
-		                    data-bs-dismiss="modal">
-		            </button>
+				<!-- nút đóng -->
+				<button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white"
+					data-bs-dismiss="modal">
+				</button>
 
-		            <!-- ảnh lớn -->
-		            <img th:src="${profileUser.avatar}" 
-		                 class="w-100 rounded"
-		                 style="max-height:80vh; object-fit:contain;">
-		        </div>
-		    </div>
+				<!-- ảnh lớn -->
+				<img th:src="${profileUser.avatar}" class="w-100 rounded" style="max-height:80vh; object-fit:contain;">
+			</div>
 		</div>
+	</div>
 </body>
 
 </html>

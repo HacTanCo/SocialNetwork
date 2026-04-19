@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import vn.hactanco.socialnetwork.dto.ListFriendFromProfileResponseDTO;
+import vn.hactanco.socialnetwork.dto.ListFriendFromProfileResponseDTO1;
 import vn.hactanco.socialnetwork.dto.PostResponseDTO;
 import vn.hactanco.socialnetwork.dto.UserProfileDTO;
 import vn.hactanco.socialnetwork.model.User;
@@ -38,6 +38,7 @@ public class UserController {
 		// 🔥 thông tin user
 		User profileUser = userService.getById(userId);
 		int friendCount = friendshipService.countFriends(userId);
+		long postCount = postService.countPostByUserId(userId);
 		// 🔥 lấy post (có pagination)
 		int page = 0;
 		int size = 10;
@@ -57,6 +58,7 @@ public class UserController {
 		model.addAttribute("posts", posts);
 		model.addAttribute("currentUser", currentUser);
 		model.addAttribute("friendCount", friendCount);
+		model.addAttribute("postCount", postCount);
 		model.addAttribute("suggestions", this.friendshipService.getSuggestions(currentUser.getId()));
 
 		return "profile/profile";
@@ -70,9 +72,9 @@ public class UserController {
 
 	@GetMapping("/api/friends/{userId}")
 	@ResponseBody
-	public List<ListFriendFromProfileResponseDTO> getFriends(@PathVariable Long userId, HttpSession session) {
+	public List<ListFriendFromProfileResponseDTO1> getFriends(@PathVariable Long userId, HttpSession session) {
 		User currentUser = (User) session.getAttribute("USER");
-		return friendshipService.getFriendsDTO(userId, currentUser.getId());
+		return friendshipService.getFriendsDTOwithPending(userId, currentUser.getId());
 	}
 
 	@PostMapping("/profile/update")

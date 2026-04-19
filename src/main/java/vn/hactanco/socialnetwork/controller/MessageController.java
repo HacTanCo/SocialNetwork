@@ -32,7 +32,7 @@ public class MessageController {
 	@Value("${file.upload-dir}")
 	private String uploadDir;
 
-	@MessageMapping("/chat.send")
+	@MessageMapping("/chat/send")
 	public void send(MessageDTO dto) {
 
 		// lưu DB
@@ -49,7 +49,7 @@ public class MessageController {
 		messagingTemplate.convertAndSend("/topic/chat/" + dto.getSenderId(), updated);
 	}
 
-	@MessageMapping("/chat.seen")
+	@MessageMapping("/chat/seen")
 	public void seen(MessageDTO dto) {
 
 		// B đã đọc tin của A
@@ -111,7 +111,7 @@ public class MessageController {
 		return Map.of("url", "/uploads/chat/" + fileName);
 	}
 
-	@MessageMapping("/chat.delete")
+	@MessageMapping("/chat/delete")
 	public void delete(MessageDTO dto) {
 
 		MessageDTO m = messageService.getById(dto.getId()); // lấy info trước
@@ -123,7 +123,7 @@ public class MessageController {
 		messagingTemplate.convertAndSend("/topic/chat/" + m.getReceiverId(), dto);
 	}
 
-	@MessageMapping("/chat.update")
+	@MessageMapping("/chat/update")
 	public void update(MessageDTO dto) {
 
 		MessageDTO updated = messageService.updateMessage(dto.getId(), dto.getContent());

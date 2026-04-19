@@ -17,7 +17,6 @@ const likePost = async (icon, postId) => {
 
         const data = await res.json();
 
-        // 🎯 toggle icon
         if (data.liked) {
             icon.classList.add("bi-heart-fill", "text-danger");
             icon.classList.remove("bi-heart");
@@ -26,7 +25,7 @@ const likePost = async (icon, postId) => {
             icon.classList.add("bi-heart");
         }
 
-        // 🎯 update số like
+
         document.getElementById(`like-count-${postId}`).innerText = data.likeCount;
 
     } catch (e) {

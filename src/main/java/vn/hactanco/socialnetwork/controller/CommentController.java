@@ -28,33 +28,6 @@ public class CommentController {
 	private final CommentService commentService;
 	private final SimpMessagingTemplate messagingTemplate;
 
-	// @GetMapping("/post/{postId}")
-	// public List<Map<String, Object>> getComments(@PathVariable Long postId,
-	// HttpSession session) {
-	// User user = (User) session.getAttribute("USER");
-	// List<Map<String, Object>> comments =
-	// commentService.getCommentsByPostId(postId);
-	// if (user != null) {
-	// comments.forEach(c -> c.put("isOwner",
-	// c.get("userId").equals(user.getId())));
-	// }
-	// return comments;
-	// }
-
-	// @PostMapping("/create")
-	// public Map<String, Object> createComment(@RequestBody Map<String, Object>
-	// body, HttpSession session) {
-	// User user = (User) session.getAttribute("USER");
-	// if (user == null)
-	// return Map.of("success", false, "message", "Bạn chưa đăng nhập");
-	//
-	// Long postId = Long.valueOf(body.get("postId").toString());
-	// String content = body.get("content").toString();
-	//
-	// Map<String, Object> commentMap = commentService.createComment(postId,
-	// content, user);
-	// return Map.of("success", true, "comment", commentMap);
-	// }
 	@PostMapping("/create")
 	public Map<String, Object> createComment(@RequestBody Map<String, Object> body, HttpSession session) {
 
@@ -144,7 +117,7 @@ public class CommentController {
 
 		Long commentId = Long.valueOf(body.get("commentId").toString());
 
-		// ✅ LẤY TRƯỚC
+		// LẤY TRƯỚC
 		Long postId = commentService.getPostIdByCommentId(commentId);
 
 		boolean deleted = commentService.deleteComment(commentId, user);
@@ -152,6 +125,33 @@ public class CommentController {
 		long newCount = commentService.countByPostId(postId);
 		return Map.of("success", deleted, "commentCount", newCount);
 	}
+	// @GetMapping("/post/{postId}")
+	// public List<Map<String, Object>> getComments(@PathVariable Long postId,
+	// HttpSession session) {
+	// User user = (User) session.getAttribute("USER");
+	// List<Map<String, Object>> comments =
+	// commentService.getCommentsByPostId(postId);
+	// if (user != null) {
+	// comments.forEach(c -> c.put("isOwner",
+	// c.get("userId").equals(user.getId())));
+	// }
+	// return comments;
+	// }
+
+	// @PostMapping("/create")
+	// public Map<String, Object> createComment(@RequestBody Map<String, Object>
+	// body, HttpSession session) {
+	// User user = (User) session.getAttribute("USER");
+	// if (user == null)
+	// return Map.of("success", false, "message", "Bạn chưa đăng nhập");
+	//
+	// Long postId = Long.valueOf(body.get("postId").toString());
+	// String content = body.get("content").toString();
+	//
+	// Map<String, Object> commentMap = commentService.createComment(postId,
+	// content, user);
+	// return Map.of("success", true, "comment", commentMap);
+	// }
 	// @PostMapping("/reply")
 	// public Map<String, Object> replyComment(@RequestBody Map<String, Object>
 	// body, HttpSession session) {

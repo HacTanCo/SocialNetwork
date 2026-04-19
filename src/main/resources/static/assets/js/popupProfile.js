@@ -52,9 +52,10 @@ document.addEventListener("mouseover", function (e) {
 
     // delay nhẹ (giống Facebook)
     hoverTimeout = setTimeout(() => {
-
+		
         // 🔥 nếu đã cache thì dùng luôn
         if (userCache[userId]) {
+			
             renderPopup(userCache[userId], target);
             return;
         }
@@ -64,6 +65,8 @@ document.addEventListener("mouseover", function (e) {
             .then(res => res.json())
             .then(user => {
                 userCache[userId] = user;
+				console.log("userCache: ", userCache);
+				
                 renderPopup(user, target);
             });
 

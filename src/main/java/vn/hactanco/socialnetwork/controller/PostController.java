@@ -89,11 +89,13 @@ public class PostController {
 	}
 
 	@PostMapping("/post/delete/{id}")
-	public String deletePost(@PathVariable Long id, Authentication authentication) {
+	public String deletePost(@PathVariable Long id, Authentication authentication,
+			RedirectAttributes redirectAttributes) {
 		User user = this.userService.findUserByEmail(authentication.getName());
 
 		postService.deletePost(id, user);
 
+		redirectAttributes.addFlashAttribute("success", "Xóa bài thành công");
 		return "redirect:/home";
 	}
 
