@@ -5,7 +5,7 @@
 - Query Methods: https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
 - Repository query keywords: https://docs.spring.io/spring-data/jpa/reference/repositories/query-keywords-reference.html
 - Validating Form Input: https://spring.io/guides/gs/validating-form-input
-# Authentication
+# Authentication 
 ## Register
 ## Login ( có image minh họa workflow)
 ## Forgot password

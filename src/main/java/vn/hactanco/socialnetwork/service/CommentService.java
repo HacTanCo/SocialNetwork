@@ -10,8 +10,11 @@ import vn.hactanco.socialnetwork.dto.CommentResponseDTO;
 import vn.hactanco.socialnetwork.dto.ReplyResponseDTO;
 import vn.hactanco.socialnetwork.helper.TinhThoiGian;
 import vn.hactanco.socialnetwork.model.Comment;
+import vn.hactanco.socialnetwork.model.Notification;
+import vn.hactanco.socialnetwork.model.Post;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.CommentRepository;
+import vn.hactanco.socialnetwork.repository.NotificationRepository;
 import vn.hactanco.socialnetwork.repository.PostRepository;
 
 @Service
@@ -19,13 +22,22 @@ import vn.hactanco.socialnetwork.repository.PostRepository;
 public class CommentService {
 	private final CommentRepository commentRepository;
 	private final PostRepository postRepository;
+	private final NotificationRepository notificationRepository;
 
 	public Comment createComment(Long postId, String content, User user) {
 
 		Comment comment = Comment.builder().content(content).post(postRepository.getReferenceById(postId)).user(user)
 				.build();
+		Comment saved = commentRepository.save(comment);
+		// NOTIFICATION
+		Post post = saved.getPost();
+		if (!post.getUser().getId().equals(user.getId())) {
+			Notification n = Notification.builder().sender(user).receiver(post.getUser()).post(post).type("COMMENT")
+					.content(user.getName() + " đã bình luận bài viết của bạn").build();
 
-		return commentRepository.save(comment);
+			notificationRepository.save(n);
+		}
+		return saved;
 	}
 
 	public List<CommentResponseDTO> getComments(Long postId, Long currentUserId) {
@@ -57,8 +69,15 @@ public class CommentService {
 		Comment reply = Comment.builder().content(content).post(postRepository.getReferenceById(postId)).user(user)
 				.parent(parent) // 🔥 QUAN TRỌNG
 				.build();
+		Comment saved = commentRepository.save(reply);
+		// NOTIFICATION (reply vào comment của người khác)
+		if (!parent.getUser().getId().equals(user.getId())) {
+			Notification n = Notification.builder().sender(user).receiver(parent.getUser()).post(parent.getPost())
+					.type("COMMENT").content(user.getName() + " đã trả lời bình luận của bạn").build();
 
-		return commentRepository.save(reply);
+			notificationRepository.save(n);
+		}
+		return saved;
 	}
 
 	public boolean updateComment(Long commentId, String content, User user) {

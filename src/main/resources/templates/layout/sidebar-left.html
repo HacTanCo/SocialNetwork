@@ -111,18 +111,31 @@
 			<a th:href="@{/friend}" class="nav-link d-flex align-items-center mb-2 position-relative">
 				<i class="bi bi-people fs-4 me-3"></i>
 				<span>Bạn bè</span>
-				<!-- badge tổng -->
-				<span id="total-unread-badge" style="position:absolute; top:5px; right:10px; background:red; color:white; font-size:10px; padding:2px 6px; border-radius:10px; display:none; ">
+				<!-- Badge tin nhắn chưa đọc -->
+				<span id="message-unread-badge" 
+				             class="badge bg-danger position-absolute top-0 start-100 translate-middle px-2 py-1"
+				              style="font-size: 10px; font-weight: 600; min-width: 18px; height: 18px; 
+				                     display: none; align-items: center; justify-content: center; 
+				                     border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
 				</span>
 			</a>
 		</li>
 
 		<!-- Thông báo -->
 		<li class="nav-item">
-			<a href="#" class="nav-link d-flex align-items-center mb-2">
-				<i class="bi bi-heart fs-4 me-3"></i>
-				<span>Thông báo</span>
-			</a>
+		    <a href="#" class="nav-link d-flex align-items-center mb-2 position-relative"
+		       data-bs-toggle="modal" data-bs-target="#notificationModal">
+		        <i class="bi bi-heart fs-4 me-3"></i>
+		        <span>Thông báo</span>
+		        
+		        <!-- Badge số thông báo chưa đọc -->
+				<span id="notification-unread-badge"
+				                      class="badge bg-danger position-absolute top-0 start-100 translate-middle px-2 py-1"
+				                      style="font-size: 10px; font-weight: 600; min-width: 18px; height: 18px;
+				                             display: none; align-items: center; justify-content: center;
+				                             border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+				                </span>
+		    </a>
 		</li>
 
 		<!-- Tạo bài viết (mở modal) -->

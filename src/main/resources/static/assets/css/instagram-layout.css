@@ -510,3 +510,49 @@ main {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 9999;
 }
+.notification-item {
+    position: relative;           /* Quan trọng */
+    transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Chấm đỏ ở góc phải ngoài cùng của mỗi item */
+.unread-dot {
+    position: absolute;
+    top: 50%;
+    right: 20px;                  /* Điều chỉnh khoảng cách từ cạnh phải */
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: #ff3040;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+/* Badge thông báo chưa đọc */
+#total-unread-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    min-width: 18px;
+    height: 18px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: #ff3040;
+    color: white;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    z-index: 5;
+}
+
+/* Mobile version */
+.offcanvas .nav-link #total-unread-badge {
+    position: static;
+    transform: none;
+    margin-left: auto;
+}

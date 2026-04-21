@@ -601,25 +601,28 @@ function closeChat(friendId) {
     if (box) box.remove();
 }
 // v
-document.addEventListener("DOMContentLoaded", function () {
+function initUnreadMessage() {
     fetch(`/chat/unread-count?userId=${currentUserId}`)
         .then(res => res.json())
         .then(data => {
-			totalUnread = 0;
-            Object.entries(data).forEach(([friendId, count]) => {
-                const badge = document.getElementById("badge-" + friendId);
 
+            totalUnread = 0;
+
+            Object.entries(data).forEach(([friendId, count]) => {
+                totalUnread += count;
+
+                const badge = document.getElementById("badge-" + friendId);
                 if (badge && count > 0) {
                     badge.innerText = count;
                     badge.style.display = "inline-block";
                 }
-				totalUnread += count;
             });
-		    updateTotalBadge(totalUnread);
+
+            updateTotalBadge(totalUnread);
         });
-});
+}
 function updateTotalBadge(total) {
-    const badge = document.getElementById("total-unread-badge");
+    const badge = document.getElementById("message-unread-badge");
     if (!badge) return;
 
     if (total > 0) {

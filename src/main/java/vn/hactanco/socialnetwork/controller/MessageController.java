@@ -138,4 +138,14 @@ public class MessageController {
 	public Map<Long, Integer> getUnreadCount(@RequestParam Long userId) {
 		return messageService.countUnreadByUser(userId);
 	}
+
+	@GetMapping("/messages/unread-total")
+	@ResponseBody
+	public long getTotalUnreadMessages(HttpSession session) {
+		User user = (User) session.getAttribute("USER");
+		if (user == null) {
+			return 0;
+		}
+		return messageService.countTotalUnreadMessages(user.getId());
+	}
 }

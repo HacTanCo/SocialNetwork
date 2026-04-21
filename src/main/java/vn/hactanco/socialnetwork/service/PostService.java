@@ -163,9 +163,9 @@ public class PostService {
 		// 1. lấy id trước (tránh N+1)
 		Page<Long> postIdsPage = postRepository.findPostIds(pageable);
 		List<Long> ids = postIdsPage.getContent();
-		for (Long id : ids) {
-			System.out.println("id: " + id);
-		}
+//		for (Long id : ids) {
+//			System.out.println("id: " + id);
+//		}
 		// 2. fetch post + user + media
 		List<Post> posts = postRepository.findByIdInWithUserAndMedia(ids);
 		Map<Long, Post> map = posts.stream().collect(Collectors.toMap(Post::getId, p -> p));
@@ -177,7 +177,7 @@ public class PostService {
 				.collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
 
 		List<Long> postIds = posts.stream().map(Post::getId).toList();
-		System.out.println("postIds: " + postIds);
+		// System.out.println("postIds: " + postIds);
 		Map<Long, Long> commentCountMap = commentRepository.countCommentsByPostIds(postIds).stream()
 				.collect(Collectors.toMap(obj -> (Long) obj[0], obj -> (Long) obj[1]));
 

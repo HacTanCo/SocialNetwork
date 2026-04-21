@@ -26,6 +26,10 @@ public class MessageService {
 	@Value("${file.upload-dir}")
 	private String uploadDir;
 
+	public long countTotalUnreadMessages(Long userId) {
+		return messageRepository.countByReceiverIdAndIsReadFalse(userId);
+	}
+
 	public List<MessageDTO> getChat(Long userId, Long friendId) {
 		return messageRepository.getChat(userId, friendId).stream().map(this::toDTO).collect(Collectors.toList());
 	}

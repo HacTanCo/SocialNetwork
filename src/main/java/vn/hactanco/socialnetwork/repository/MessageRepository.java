@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import vn.hactanco.socialnetwork.model.Message;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
+	long countByReceiverIdAndIsReadFalse(Long receiverId);
 
 	@Query("""
 			    SELECT m FROM Message m
