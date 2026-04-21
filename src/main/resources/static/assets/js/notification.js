@@ -51,7 +51,10 @@ function handleNotificationClick(n) {
         method: "POST",
         headers: { [header]: token }
     });
-
+	if (n.type === "FRIEND_REQUEST" || n.type === "FRIEND_ACCEPT") {
+				    window.location.href = "/friend";
+					return;
+			}
     if (n.postId) {
         if (n.type === "LIKE" ) {
             goToPost(n.postId);
@@ -61,8 +64,9 @@ function handleNotificationClick(n) {
             // Có thể mở comment modal sau khi scroll
             setTimeout(() => openCommentModal(n.postId), 800);
         }
+		
     }
-
+	
     // Đóng modal thông báo
     const modal = bootstrap.Modal.getInstance(document.getElementById("notificationModal"));
     modal.hide();

@@ -15,11 +15,14 @@ import vn.hactanco.socialnetwork.enums.FriendshipStatus;
 import vn.hactanco.socialnetwork.model.Friendship;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.FriendshipRepository;
+import vn.hactanco.socialnetwork.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
 public class FriendshipService {
 	private final FriendshipRepository friendshipRepository;
+	private final NotificationService notificationService;
+	private final UserRepository userRepository;
 
 	public List<UserSuggestionResponseDTO> getSuggestions(Long userId) {
 		List<UserSuggestionResponseDTO> results = friendshipRepository.getUserSuggestions(userId);
@@ -31,7 +34,7 @@ public class FriendshipService {
 		if (friendshipRepository.findByFollowerIdAndFollowingId(userId, targetId).isPresent()) {
 			return;
 		}
-
+		String name = userRepository.findById(userId).orElseThrow().getName();
 		// 2. Nếu tồn tại ngược chiều → accept luôn
 		var reverse = friendshipRepository.findByFollowerIdAndFollowingId(targetId, userId);
 
@@ -39,6 +42,10 @@ public class FriendshipService {
 			Friendship fs = reverse.get();
 			fs.setStatus(FriendshipStatus.ACCEPTED);
 			friendshipRepository.save(fs);
+			// notification accept luôn
+
+			notificationService.createNotification(userId, targetId, name + " đã chấp nhận lời mời kết bạn của bạn",
+					"FRIEND_ACCEPT", null);
 			return;
 		}
 
@@ -47,15 +54,19 @@ public class FriendshipService {
 		fs.setFollower(new User(userId));
 		fs.setFollowing(new User(targetId));
 		fs.setStatus(FriendshipStatus.PENDING);
-
+		// THÊM: notification gửi lời mời
+		notificationService.createNotification(userId, targetId, name + " đã gửi cho bạn lời mời kết bạn",
+				"FRIEND_REQUEST", null);
 		friendshipRepository.save(fs);
 	}
 
 	public void acceptFriend(Long userId, Long targetId) {
 		Friendship fs = friendshipRepository.findByFollowerIdAndFollowingId(targetId, userId).orElseThrow();
-
+		String name = userRepository.findById(userId).orElseThrow().getName();
 		fs.setStatus(FriendshipStatus.ACCEPTED);
 		friendshipRepository.save(fs);
+		notificationService.createNotification(userId, targetId, name + " đã chấp nhận lời mời kết bạn của bạn",
+				"FRIEND_ACCEPT", null);
 	}
 
 	public void rejectFriend(Long userId, Long targetId) {
@@ -63,6 +74,7 @@ public class FriendshipService {
 
 		fs.setStatus(FriendshipStatus.REJECTED);
 		friendshipRepository.save(fs);
+
 	}
 
 	public void removeFriend(Long userId, Long targetId) {
