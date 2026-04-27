@@ -28,16 +28,6 @@ public class AIMessageController {
 
 		Map<String, String> res = new HashMap<>();
 
-		if (user == null) {
-			res.put("reply", "❌ Chưa đăng nhập");
-			return res;
-		}
-
-		if (message == null || message.trim().isEmpty()) {
-			res.put("reply", "❌ Tin nhắn rỗng");
-			return res;
-		}
-
 		String reply = aiMesageService.chat(user.getId(), message);
 
 		res.put("reply", reply);

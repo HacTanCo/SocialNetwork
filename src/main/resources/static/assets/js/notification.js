@@ -8,11 +8,11 @@ function loadNotifications() {
             container.innerHTML = "";
 
             data.forEach(n => {
-				console.log("Loading notification:", n);
+                console.log("Loading notification:", n);
                 const item = document.createElement("div");
                 const avatar = n.senderAvatar || "/images/default-avatar.png";
 
-                item.className = `d-flex align-items-center p-3 border-bottom notification-item ${!n.isRead ? 'unread' : ''}`;
+                item.className = `d-flex align-items-center p-3 border-bottom notification-item ${!n.read ? 'unread' : ''}`;
                 item.style.cursor = "pointer";
 
                 item.innerHTML = `
@@ -22,7 +22,7 @@ function loadNotifications() {
                     </div>
 
                     <div style="flex:1;">
-                        <div class="${!n.isRead ? 'fw-bold' : ''}" style="font-size:15px; line-height:1.45;">
+                        <div class="${!n.read ? 'fw-bold' : ''}" style="font-size:15px; line-height:1.45;">
                             ${n.content}
                         </div>
                         <div style="font-size:13px; color:#8e8e8e; margin-top:2px;">
@@ -51,29 +51,29 @@ function handleNotificationClick(n) {
         method: "POST",
         headers: { [header]: token }
     });
-	if (n.type === "FRIEND_REQUEST" || n.type === "FRIEND_ACCEPT") {
-				    window.location.href = "/friend";
-					return;
-			}
+    if (n.type === "FRIEND_REQUEST" || n.type === "FRIEND_ACCEPT") {
+        window.location.href = "/friend";
+        return;
+    }
     if (n.postId) {
-        if (n.type === "LIKE" ) {
+        if (n.type === "LIKE") {
             goToPost(n.postId);
         }
-        
+
         if (n.type === "COMMENT" || n.type === "REPLY") {
             // Có thể mở comment modal sau khi scroll
             setTimeout(() => openCommentModal(n.postId), 800);
         }
-		
+
     }
-	
+
     // Đóng modal thông báo
     const modal = bootstrap.Modal.getInstance(document.getElementById("notificationModal"));
     modal.hide();
-	// Cập nhật lại số badge sau khi đọc
-	    setTimeout(() => {
-	        loadUnreadCount();
-	    }, 300);
+    // Cập nhật lại số badge sau khi đọc
+    setTimeout(() => {
+        loadUnreadCount();
+    }, 300);
 }
 function goToPost(postId) {
     let post = document.querySelector(`[data-post-id="${postId}"]`);
@@ -89,7 +89,7 @@ function goToPost(postId) {
 
 function highlightPost(post) {
     post.style.transition = "box-shadow 0.3s";
-	post.style.boxShadow = `
+    post.style.boxShadow = `
 	    0 0 0 4px rgba(245, 96, 64, 0.25), 
 	    0 0 0 8px rgba(245, 96, 64, 0.15),
 	    0 0 0 12px rgba(245, 96, 64, 0.08)
@@ -100,40 +100,40 @@ function highlightPost(post) {
 }
 // mở modal thì load
 document.getElementById("notificationModal")
-    .addEventListener("show.bs.modal", function () {
+    .addEventListener("show.bs.modal", function() {
         loadNotifications();
-        loadUnreadCount();     // ← thêm dòng này
+        loadUnreadCount();
     });
 
-	function loadUnreadCount() {
-	    fetch("/notifications/unread-count")
-	        .then(res => res.json())
-	        .then(count => {
-				console.log("Unread notification count:", count);
-	            const badge = document.getElementById("notification-unread-badge");
+function loadUnreadCount() {
+    fetch("/notifications/unread-count")
+        .then(res => res.json())
+        .then(count => {
+            console.log("Unread notification count:", count);
+            const badge = document.getElementById("notification-unread-badge");
 
-	            if (count > 0) {
-	                badge.style.display = "inline-block";
-	                badge.innerText = count;
-	            } else {
-	                badge.style.display = "none";
-	            }
-	        });
-	}
-	// Hàm lấy tổng số tin nhắn chưa đọc
-	function loadUnreadMessageCount() {
-	    fetch("/messages/unread-total")
-	        .then(res => res.json())
-	        .then(count => {
-				
-	            const badge = document.getElementById("message-unread-badge");
-	            
-	            if (count > 0) {
-	                badge.style.display = "flex";
-	                badge.textContent = count > 99 ? "99+" : count;
-	            } else {
-	                badge.style.display = "none";
-	            }
-	        })
-	        .catch(err => console.error("Lỗi load unread message count:", err));
-	}
+            if (count > 0) {
+                badge.style.display = "inline-block";
+                badge.innerText = count;
+            } else {
+                badge.style.display = "none";
+            }
+        });
+}
+// Hàm lấy tổng số tin nhắn chưa đọc
+function loadUnreadMessageCount() {
+    fetch("/messages/unread-total")
+        .then(res => res.json())
+        .then(count => {
+
+            const badge = document.getElementById("message-unread-badge");
+
+            if (count > 0) {
+                badge.style.display = "flex";
+                badge.textContent = count > 99 ? "99+" : count;
+            } else {
+                badge.style.display = "none";
+            }
+        })
+        .catch(err => console.error("Lỗi load unread message count:", err));
+}

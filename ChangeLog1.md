@@ -119,5 +119,55 @@ function(message) {
  ## Update profile
 
 # Messages
+1. ở trong file WebSocketConfig.java sẽ có 2 chỗ cho user sư dụng và 1 nơi kết nối đến ws
+- enableSimpleBroker: là nơi mà user sẽ nhận được data realtime khi subscribe vào nội dung đó
+- setApplicationDestinationPrefixes: là nơi mà user sẽ gửi các thông tin đi 
+- addEndpoint: chỗ đăng ký ws
+2. @MessageMapping giống với @PostMapping nhưng dành cho Websocket
+## Send message
+1. khi gửi tin nhắn sẽ đánh dấu là đã nhận trong db đối với người nhận, xong rồi gửi ra tin nhắn đó ra cho các user đang subscribe đoạn tin nhắn có thể đọc real time
 
-## Load Chat
+## Seen message
+1. khi người dùng click vào ô input ở gửi tin nhắn nếu có tin nhắn mới chưa đọc thì sẽ gửi seen vào controller vào đánh dấu đã đọc
+
+## Load message
+1. Load nội dung đoạn chat và gửi kèm seen message  
+
+## upload image/video
+## delete message
+## update message
+## unread-count: dùng cho hiển thị số tin nhắn của mỗi người trong trang bạn bè
+## unread-total: dùng để hiển thị ở thanh sidebar left, sử dụng ở notification
+
+# Notification
+1. gắn các notification ở các nơi cần để tạo notification
+## load notification
+## notification unread count
+## mark read
+
+# AI 
+1. Work flow:
+Nhận message từ user
+Tạo JSON request
+Gửi POST tới Groq
+Nhận JSON response
+Lấy content
+Trả về frontend
+
+# Call video
+1. Luồng 1 — Gọi bình thường (Happy path)
+Caller bấm icon camera → startVideoCall(friendId) chạy: bật camera/mic, tạo RTCPeerConnection, tạo offer SDP rồi gửi qua WebSocket đến /app/call. Server forward đến /topic/call/{calleeId}. Callee nhận offer → handleIncomingCall() → hiện modal. Callee bấm Nhận → acceptCall(): bật camera, tạo answer SDP gửi ngược lại. Caller nhận answer → setRemoteDescription() + clearTimeout(). Sau đó cả hai trao đổi ICE candidates qua lại cho đến khi P2P kết nối thành công và video hiển thị.
+
+2. Luồng 2 — Từ chối
+Callee bấm Từ chối → gửi type: "reject" → Caller nhận → alert + endCall(). Modal bên Callee tự đóng.
+
+3. Luồng 3 — Không phản hồi (timeout 5s)
+Caller đặt callTimeout ngay sau khi gửi offer. Sau 5 giây nếu chưa có answer → tự động gửi type: "cancel" cho Callee → modal bên Callee tự đóng → Caller endCall().
+
+4. Luồng 4 — Mất kết nối giữa chừng
+onconnectionstatechange theo dõi trạng thái P2P. Nếu disconnected hoặc failed → tự động gọi endCall().
+
+5. Luồng 5 — Kết thúc chủ động
+Bấm nút End → endCall(): đóng peerConnection, dừng tất cả track của localStream, ẩn callModal. Nếu có currentCallRemoteId thì gửi thêm type: "end" để bên kia cũng tự đóng.
+
+pendingCandidates[] là buffer quan trọng — ICE candidates có thể đến trước khi remoteDescription được set, nên phải lưu tạm và add sau khi setRemoteDescription() hoàn thành.

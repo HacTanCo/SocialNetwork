@@ -17,16 +17,22 @@ public class AIMesageService {
 	private final AIMessageRepository aiMessageRepository;
 	private final AIService aiService;
 
+	// @formatter:off
 	public String chat(Long userId, String message) throws Exception {
 
-		// 1. Lưu câu hỏi user
-		aiMessageRepository.save(AIMessage.builder().user(new User(userId)).role("USER").content(message).build());
+		aiMessageRepository.save(AIMessage.builder()
+				.user(new User(userId))
+				.role("USER")
+				.content(message)
+				.build());
 
-		// 2. Gọi AI (KHÔNG history)
 		String reply = aiService.callGroq(message);
 
-		// 3. Lưu câu trả lời AI
-		aiMessageRepository.save(AIMessage.builder().user(new User(userId)).role("ASSISTANT").content(reply).build());
+		aiMessageRepository.save(AIMessage.builder()
+				.user(new User(userId))
+				.role("ASSISTANT")
+				.content(reply)
+				.build());
 
 		return reply;
 	}

@@ -34,14 +34,12 @@ public class MessageController {
 
 	@MessageMapping("/chat/send")
 	public void send(MessageDTO dto) {
-
-		// lưu DB
 		MessageDTO saved = messageService.save(dto);
 
-		// 🔥 đánh dấu isDelivered ngay sau khi lưu, vì đã gửi đến receiver rồi
+		// đánh dấu isDelivered ngay sau khi lưu, vì đã gửi đến receiver rồi
 		messageService.markDelivered(saved.getId());
 
-		// 🔥 lấy lại message mới (đã updated)
+		// lấy lại message mới (đã updated)
 		MessageDTO updated = messageService.getById(saved.getId());
 		// gửi cho receiver
 		messagingTemplate.convertAndSend("/topic/chat/" + dto.getReceiverId(), updated);
@@ -55,7 +53,7 @@ public class MessageController {
 		// B đã đọc tin của A
 		messageService.markAsRead(dto.getReceiverId(), dto.getSenderId());
 
-		// 🔥 gửi event về A với NGỮ NGHĨA ĐÚNG
+		// gửi event seen về A
 		MessageDTO seenEvent = MessageDTO.builder().senderId(dto.getReceiverId()) // 👉 B (người đã xem)
 				.receiverId(dto.getSenderId()) // 👉 A
 				.build();
@@ -72,7 +70,7 @@ public class MessageController {
 		// mark read
 		messageService.markAsRead(currentUser.getId(), friendId);
 
-		// 🔥 gửi seen event cho friend
+		// gửi seen event cho friend
 		MessageDTO seenEvent = MessageDTO.builder().senderId(currentUser.getId()) // A
 				.receiverId(friendId) // B
 				.build();
@@ -118,7 +116,7 @@ public class MessageController {
 
 		messageService.deleteMessage(dto.getId());
 
-		// 🔥 chỉ cần gửi id là đủ
+		//  chỉ cần gửi id là đủ
 		messagingTemplate.convertAndSend("/topic/chat/" + m.getSenderId(), dto);
 		messagingTemplate.convertAndSend("/topic/chat/" + m.getReceiverId(), dto);
 	}

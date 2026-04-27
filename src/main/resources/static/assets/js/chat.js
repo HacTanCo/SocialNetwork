@@ -1,13 +1,75 @@
 console.log("Chat");
 let chatStompClient = null;
 let totalUnread = 0;
+let localStream = null;
+let peerConnection = null;
+let pendingCandidates = [];
+let currentCallRemoteId = null;
+const config = {
+    iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+    ]
+};
+// 25/4 
 function connectWS() {
     const socket = new SockJS('/ws');
     chatStompClient = Stomp.over(socket);
 
-    chatStompClient.connect({}, function () {
+    chatStompClient.connect({}, function() {
+        chatStompClient.subscribe('/topic/call/' + currentUserId, async function(msg) {
+            const data = JSON.parse(msg.body);
+            // 🔥 THÊM DÒNG NÀY - debug
+            console.log("Received call msg:", data.type, "from:", data.from, "to:", data.to, "me:", currentUserId);
+            if (data.type === "offer") {
 
-        chatStompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
+                // ❗ CHỈ xử lý nếu mình là người nhận
+                if (data.to != currentUserId) return;
+
+                handleIncomingCall(data);
+            }
+
+            if (data.type === "answer") {
+                if (data.to != currentUserId) return;
+
+                if (!peerConnection) return;
+
+                await peerConnection.setRemoteDescription(JSON.parse(data.data));
+
+                // ✅ ADD ICE pending
+                pendingCandidates.forEach(c => peerConnection.addIceCandidate(c));
+                pendingCandidates = [];
+            }
+
+            if (data.type === "ice") {
+                if (data.to != currentUserId) return;
+
+                const candidate = JSON.parse(data.data);
+
+                if (peerConnection && peerConnection.remoteDescription) {
+                    await peerConnection.addIceCandidate(candidate);
+                } else {
+                    // ❗ chưa set remote → lưu lại
+                    pendingCandidates.push(candidate);
+                }
+            }
+
+            if (data.type === "reject") {
+
+                // ❗ CHỈ xử lý nếu mình là người nhận reject
+                if (data.to != currentUserId) return;
+
+                alert("Cuộc gọi bị từ chối");
+                endCall();
+            }
+			if (data.type === "cancel") {
+			    if (data.to != currentUserId) return;
+			    // Đóng modal incoming call nếu đang hiện
+			    const modal = document.getElementById("incomingCallModal");
+			    if (modal) modal.remove();
+			}
+        });
+
+        chatStompClient.subscribe('/topic/chat/' + currentUserId, function(msg) {
 
             const message = JSON.parse(msg.body);
             //  HANDLE DELETE
@@ -20,7 +82,7 @@ function connectWS() {
 
                 return;
             }
-            // ====================== HANDLE UPDATE ======================
+            // =HANDLE UPDATE
             //  nếu message đã tồn tại → update UI, không render mới
             if (message.id && message.content && message.createdAt) {
 
@@ -46,16 +108,16 @@ function connectWS() {
                 }
             }
 
-			if (!message.content && !message.mediaUrl && message.senderId) {
+            if (!message.content && !message.mediaUrl && message.senderId) {
 
-			    //  CHỈ xử lý nếu mình là người nhận seen
-			    if (message.receiverId == currentUserId) {
-			        updateSeenStatus(message.senderId);
-			        //clearBadge(message.senderId);
-			    }
+                //  CHỈ xử lý nếu mình là người nhận seen
+                if (message.receiverId == currentUserId) {
+                    updateSeenStatus(message.senderId);
+                    //clearBadge(message.senderId);
+                }
 
-			    return;
-			}
+                return;
+            }
 
             const friendId = message.senderId == currentUserId
                 ? message.receiverId
@@ -64,9 +126,9 @@ function connectWS() {
             if (!openChats[friendId]) {
                 //  chỉ show notification thôi
                 showNewMessageBadge(friendId);
-				
-				totalUnread++; 
-				updateTotalBadge(totalUnread);
+
+                totalUnread++;
+                updateTotalBadge(totalUnread);
             }
 
             //  render mini chat
@@ -76,7 +138,7 @@ function connectWS() {
 
     });
 }
-// v
+// 25/4
 function showNewMessageBadge(friendId) {
     const badge = document.getElementById("badge-" + friendId);
     if (!badge) return;
@@ -86,7 +148,7 @@ function showNewMessageBadge(friendId) {
     let count = parseInt(badge.innerText) || 0;
     badge.innerText = count + 1;
 }
-// v
+// 25/4
 function updateSeenStatus(friendId) {
     const box = document.getElementById("chat-body-" + friendId);
     if (!box) return;
@@ -94,7 +156,7 @@ function updateSeenStatus(friendId) {
     //  gọi lại logic set status
     updateLastMessageStatus(box, "Đã xem");
 }
-// v
+// 25/4
 function updateLastMessageStatus(box, status) {
 
     //  xóa tất cả status cũ
@@ -117,9 +179,9 @@ function updateLastMessageStatus(box, status) {
 
     bubble.appendChild(statusEl);
 }
-connectWS();
 
-// v
+
+// v 25/4
 function scrollToBottom(force = false) {
     const box = document.getElementById('chatMessages');
     if (!box) return;
@@ -144,7 +206,7 @@ function scrollToBottom(force = false) {
 
 // chatbox 
 const openChats = {};
-// v
+// 25/4
 function clearBadge(friendId) {
     const badge = document.getElementById("badge-" + friendId);
     if (!badge) return;
@@ -152,19 +214,19 @@ function clearBadge(friendId) {
     badge.innerText = "0";
     badge.style.display = "none";
 }
-// V
+// 25/4
 function openChatBox(btn) {
     const friendId = btn.getAttribute("data-id");
     const friendName = btn.getAttribute("data-name");
     const friendAvatar = btn.getAttribute("data-avatar");
-	const badge = document.getElementById("badge-" + friendId);
-	if (badge) {
-	    const count = parseInt(badge.innerText) || 0;
-	    totalUnread -= count;
-	}
-	
-	clearBadge(friendId);
-	updateTotalBadge(totalUnread);
+    const badge = document.getElementById("badge-" + friendId);
+    if (badge) {
+        const count = parseInt(badge.innerText) || 0;
+        totalUnread -= count;
+    }
+
+    clearBadge(friendId);
+    updateTotalBadge(totalUnread);
     if (openChats[friendId]) return;
 
     const container = document.getElementById("chatContainer");
@@ -185,8 +247,18 @@ function openChatBox(btn) {
 
 		        <span style="font-weight:500;">${friendName}</span>
 		    </a>
+			<div class="d-flex align-items-center gap-2">
 
-		    <span onclick="closeChat(${friendId})" style="cursor:pointer">✖</span>
+			    
+
+			    <!-- 🎥 Video call -->
+			    <i class="bi bi-camera-video-fill"
+			       style="cursor:pointer"
+			       onclick="startVideoCall(${friendId})"></i>
+
+			    <!-- ❌ Close -->
+			    <span onclick="closeChat(${friendId})" style="cursor:pointer">✖</span>
+			</div>
 	    </div>
 
 	    <div class="chat-body" id="chat-body-${friendId}"></div>
@@ -211,7 +283,7 @@ function openChatBox(btn) {
 
     container.appendChild(box);
     openChats[friendId] = true;
-	
+
     loadMiniChat(friendId);
 
     //  focus input sau khi render
@@ -219,10 +291,230 @@ function openChatBox(btn) {
         const input = box.querySelector("input");
         if (input) input.focus();
     }, 100);
-	
+
 
 }
-// v
+
+
+async function startVideoCall(friendId) {
+	console.log("currentUserName =", currentUserName);
+	currentCallRemoteId = friendId;
+    pendingCandidates = [];
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+    showCallUI(localStream);
+
+    peerConnection = new RTCPeerConnection(config);
+
+    localStream.getTracks().forEach(track =>
+        peerConnection.addTrack(track, localStream)
+    );
+
+    peerConnection.ontrack = e => {
+        document.getElementById("remoteVideo").srcObject = e.streams[0];
+    };
+
+    peerConnection.onicecandidate = e => {
+        if (e.candidate) {
+            chatStompClient.send("/app/call", {}, JSON.stringify({
+                type: "ice", // ✅ đúng
+                from: currentUserId,
+                to: friendId,
+                data: JSON.stringify(e.candidate)
+            }));
+        }
+    };
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
+    chatStompClient.send("/app/call", {}, JSON.stringify({
+        type: "offer",
+        from: currentUserId,
+		fromName: currentUserName,
+        to: friendId,
+        data: JSON.stringify(offer)
+    }));
+	window.callTimeout = setTimeout(() => {
+	    if (peerConnection && !peerConnection.remoteDescription) {
+	        // Gửi cancel cho bên nhận
+	        chatStompClient.send("/app/call", {}, JSON.stringify({
+	            type: "cancel",
+	            from: currentUserId,
+	            to: friendId  // ✅ cần lưu friendId
+	        }));
+	        alert("Không có phản hồi từ người nhận");
+	        endCall();
+	    }
+	}, 5000);
+}
+async function handleIncomingCall(data) {
+    console.log("Incoming call from:", data.from);
+
+    // Hiện modal thay vì confirm()
+    showIncomingCallModal(data);
+}
+
+function showIncomingCallModal(data) {
+    // Tạo modal động
+    const existing = document.getElementById("incomingCallModal");
+    if (existing) existing.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "incomingCallModal";
+    modal.style.cssText = `
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 20px 28px;
+        z-index: 999999;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        text-align: center;
+        min-width: 280px;
+    `;
+
+    modal.innerHTML = `
+        <div style="font-size:15px; font-weight:600; margin-bottom:6px;">
+            <i class="bi bi-camera-video"></i> Cuộc gọi video đến
+        </div>
+        <div style="font-size:13px; color:#666; margin-bottom:16px;">
+            Người dùng #${data.fromName || 'Ai đó'} đang gọi cho bạn
+        </div>
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <button id="btnAcceptCall" style="
+                background:#28a745; color:white;
+                border:none; border-radius:8px;
+                padding:8px 24px; font-size:14px; cursor:pointer;">
+                <i class="bi bi-telephone-inbound-fill"></i>
+            </button>
+            <button id="btnRejectCall" style="
+                background:#dc3545; color:white;
+                border:none; border-radius:8px;
+                padding:8px 24px; font-size:14px; cursor:pointer;">
+                 <i class="bi bi-telephone-x-fill"></i>
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Xử lý nút Nhận
+    document.getElementById("btnAcceptCall").onclick = async () => {
+        modal.remove();
+        await acceptCall(data);
+    };
+
+    // Xử lý nút Từ chối
+    document.getElementById("btnRejectCall").onclick = () => {
+        modal.remove();
+        chatStompClient.send("/app/call", {}, JSON.stringify({
+            type: "reject",
+            from: currentUserId,
+            to: data.from
+        }));
+    };
+}
+
+// Tách logic accept ra riêng
+async function acceptCall(data) {
+    pendingCandidates = [];
+
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    showCallUI(localStream);
+
+    peerConnection = new RTCPeerConnection(config);
+
+    localStream.getTracks().forEach(track =>
+        peerConnection.addTrack(track, localStream)
+    );
+
+    peerConnection.ontrack = e => {
+        document.getElementById("remoteVideo").srcObject = e.streams[0];
+    };
+
+    peerConnection.onicecandidate = e => {
+        if (e.candidate) {
+            chatStompClient.send("/app/call", {}, JSON.stringify({
+                type: "ice",
+                from: currentUserId,
+                to: data.from,
+                data: JSON.stringify(e.candidate)
+            }));
+        }
+    };
+
+    await peerConnection.setRemoteDescription(JSON.parse(data.data));
+
+    pendingCandidates.forEach(c => peerConnection.addIceCandidate(c));
+    pendingCandidates = [];
+
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    chatStompClient.send("/app/call", {}, JSON.stringify({
+        type: "answer",
+        from: currentUserId,
+        to: data.from,
+        data: JSON.stringify(answer)
+    }));
+}
+function showCallUI(stream) {
+    document.getElementById("callModal").style.display = "block";
+    document.getElementById("localVideo").srcObject = stream;
+}
+function endCall() {
+    if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+    }
+
+    if (localStream) {
+        localStream.getTracks().forEach(t => t.stop()); // ✅ đã có
+        localStream = null; // ❌ thiếu dòng này → stream cũ không được giải phóng
+    }
+
+    document.getElementById("callModal").style.display = "none";
+}
+function showRemoteVideo(stream) {
+    let video = document.createElement("video");
+
+    video.srcObject = stream;
+    video.autoplay = true;
+
+    video.style = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 200px;
+        border-radius: 10px;
+        z-index: 9999;
+    `;
+
+    document.body.appendChild(video);
+}
+function showVideoPreview(stream) {
+    let video = document.createElement("video");
+
+    video.srcObject = stream;
+    video.autoplay = true;
+    video.muted = true;
+
+    video.style = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 200px;
+        border-radius: 10px;
+        z-index: 9999;
+    `;
+
+    document.body.appendChild(video);
+}
+// 24/4
 function sendFile(friendId, input) {
     const files = input.files;
     if (!files || files.length === 0) return;
@@ -231,7 +523,10 @@ function sendFile(friendId, input) {
     const header = document.querySelector('meta[name="_csrf_header"]').content;
 
     Array.from(files).forEach(file => {
-
+        if (file.size > 10 * 1024 * 1024) {
+            showError("File quá lớn (tối đa 10MB)");
+            return; // ❗ không gọi fetch nữa
+        }
         const formData = new FormData();
         formData.append("file", file);
 
@@ -242,42 +537,43 @@ function sendFile(friendId, input) {
                 [header]: token
             }
         })
-		.then(async res => {
-		    const data = await res.json(); // ✅ luôn parse JSON
+            .then(async res => {
+                const data = await res.json(); // ✅ luôn parse JSON
 
-		    if (!res.ok || data.error) {
-		        throw new Error(data.error || "Upload thất bại");
-		    }
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || "Upload thất bại");
 
-		    return data;
-		})
-		.then(data => {
+                }
 
-		    const url = data.url; // ✅ lấy đúng field
+                return data;
+            })
+            .then(data => {
 
-		    let type = "IMAGE";
-		    if (file.type.startsWith("video")) {
-		        type = "VIDEO";
-		    }
+                const url = data.url; // ✅ lấy đúng field
 
-		    chatStompClient.send("/app/chat/send", {}, JSON.stringify({
-		        senderId: currentUserId,
-		        receiverId: friendId,
-		        content: "",
-		        mediaUrl: url,
-		        type: type
-		    }));
+                let type = "IMAGE";
+                if (file.type.startsWith("video")) {
+                    type = "VIDEO";
+                }
 
-		})
-		.catch(err => {
-		    showError(err.message);
-		});
+                chatStompClient.send("/app/chat/send", {}, JSON.stringify({
+                    senderId: currentUserId,
+                    receiverId: friendId,
+                    content: "",
+                    mediaUrl: url,
+                    type: type
+                }));
+
+            })
+            .catch(err => {
+                showError(err.message);
+            });
 
     });
 
     input.value = "";
 }
-// v
+// 25/4
 function showError(msg) {
     const div = document.createElement("div");
     div.innerText = msg;
@@ -299,7 +595,7 @@ function showError(msg) {
 
     setTimeout(() => div.remove(), 3000);
 }
-// v
+// 25/4
 function openImagePreview(src) {
     const modal = document.getElementById("imagePreviewModal");
     const img = document.getElementById("previewImg");
@@ -307,10 +603,11 @@ function openImagePreview(src) {
     img.src = src;
     modal.style.display = "flex";
 }
-// v
+// 25/4
 function closeImagePreview() {
     document.getElementById("imagePreviewModal").style.display = "none";
 }
+// v 25/4
 function handleFocusMini(friendId) {
 
     const box = document.getElementById("chat-body-" + friendId);
@@ -330,9 +627,9 @@ function handleFocusMini(friendId) {
         }
     });
 
-    if (!hasUnread) return; // ❌ không gửi seen nếu không có tin mới
+    if (!hasUnread) return; // không gửi seen nếu không có tin mới
 
-    // ✅ mới gửi seen
+    // mới gửi seen
     chatStompClient.send("/app/chat/seen", {}, JSON.stringify({
         senderId: friendId,
         receiverId: currentUserId
@@ -341,7 +638,7 @@ function handleFocusMini(friendId) {
     //  mark UI là đã đọc
     messages.forEach(msg => msg.classList.add("read"));
 }
-// v
+// 25/4
 function sendMiniMessage(friendId) {
     const input = document.querySelector(`#chat-box-${friendId} input`);
     const content = input.value.trim();
@@ -352,17 +649,17 @@ function sendMiniMessage(friendId) {
         senderId: currentUserId,
         receiverId: friendId
     }));
-	
+
     input.value = '';
 }
-// v
+// 25/4
 function handleEnterMini(e, friendId) {
     if (e.key === "Enter") {
         e.preventDefault();
         sendMiniMessage(friendId);
     }
 }
-// v
+// 25/4
 function renderMiniMessage(m, friendId) {
 
     const box = document.getElementById("chat-body-" + friendId);
@@ -376,8 +673,8 @@ function renderMiniMessage(m, friendId) {
             status = "Đã xem";
         } else if (m.delivered) {
             status = "Đã nhận";
-			}
-        
+        }
+
     }
     let mediaHtml = "";
 
@@ -462,7 +759,8 @@ function renderMiniMessage(m, friendId) {
 
         updateLastMessageStatus(box, finalStatus);
     }
-}//v
+}
+// 25/4
 function deleteMessage(id) {
 
     if (!confirm("Bạn có chắc muốn xóa tin nhắn này?")) return;
@@ -471,9 +769,9 @@ function deleteMessage(id) {
         id: id
     }));
 }
-// v
+// 25/4
 function editMessage(id) {
-	// data-id nằm ở row.setAttribute("data-id", m.id);
+    // data-id nằm ở row.setAttribute("data-id", m.id);
     const row = document.querySelector(`[data-id='${id}']`);
     if (!row) return;
 
@@ -509,7 +807,7 @@ function editMessage(id) {
         input.replaceWith(div);
     }
 
-    input.addEventListener("keydown", function (e) {
+    input.addEventListener("keydown", function(e) {
 
         // ENTER = save
         if (e.key === "Enter") {
@@ -534,13 +832,13 @@ function editMessage(id) {
         }
     });
 
-    input.addEventListener("blur", function () {
+    input.addEventListener("blur", function() {
         if (!isSaving) {
             safeReplace(oldText); //  blur cũng dùng chung logic
         }
     });
 }
-// v
+// 25/4
 function formatTimeSmart(time) {
     const date = new Date(time);
     const now = new Date();
@@ -577,12 +875,12 @@ function formatTimeSmart(time) {
         year: "numeric"
     }) + " " + timeStr;
 }
-// v
+// 25/4
 function loadMiniChat(friendId) {
     fetch('/chat/' + friendId)
         .then(res => res.json())
         .then(data => {
-			
+
             const box = document.getElementById("chat-body-" + friendId);
             box.innerHTML = '';
 
@@ -593,14 +891,14 @@ function loadMiniChat(friendId) {
             }, 50);
         });
 }
-// v
+// 25/4
 function closeChat(friendId) {
     delete openChats[friendId];
 
     const box = document.getElementById("chat-box-" + friendId);
     if (box) box.remove();
 }
-// v
+// 25/4 hiển thị các badge chưa đọc ở Friend
 function initUnreadMessage() {
     fetch(`/chat/unread-count?userId=${currentUserId}`)
         .then(res => res.json())
@@ -621,6 +919,7 @@ function initUnreadMessage() {
             updateTotalBadge(totalUnread);
         });
 }
+// 25/4 cái này là ở sidebar left
 function updateTotalBadge(total) {
     const badge = document.getElementById("message-unread-badge");
     if (!badge) return;
@@ -632,105 +931,3 @@ function updateTotalBadge(total) {
         badge.style.display = "none";
     }
 }
-// connect websocket
-/*function connectWS() {
-    const socket = new SockJS('/ws');
-    chatStompClient = Stomp.over(socket);
-
-    chatStompClient.connect({}, function () {
-
-        // subscribe nhận tin nhắn
-        chatStompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
-            const message = JSON.parse(msg.body);
-            renderMessage(message);
-            // Không gọi scrollBottom() ở đây nữa
-        });
-
-    });
-}*/
-/*function handleOpenChat(btn) {
-    const id = btn.getAttribute("data-id");
-    const name = btn.getAttribute("data-name");
-
-    openChat(id, name);
-}*/
-// mở chat
-/*function openChat(friendId, friendName) {
-    document.getElementById('chatFriendId').value = friendId;
-    document.getElementById('chatFriendName').innerText = friendName;
-
-    loadChat(friendId);
-}*/
-// bind sau khi load
-/*document.addEventListener("DOMContentLoaded", function() {
-    const input = document.getElementById("chatInput");
-
-    input.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-});*/
-// load lịch sử
-/*function loadChat(friendId) {
-    fetch('/chat/' + friendId)
-        .then(res => res.json())
-        .then(data => {
-            const box = document.getElementById('chatMessages');
-            box.innerHTML = '';
-
-            data.forEach(renderMessage);
-
-            // Scroll xuống cuối khi load lịch sử
-            setTimeout(() => scrollToBottom(true), 50);
-        })
-        .catch(err => console.error("Load chat error:", err));
-}
-*/
-// gửi tin nhắn
-/*function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const content = input.value.trim();
-    if (!content) return;
-
-    const friendId = document.getElementById('chatFriendId').value;
-
-    chatStompClient.send("/app/chat.send", {}, JSON.stringify({
-        content: content,
-        senderId: currentUserId,
-        receiverId: friendId
-    }));
-
-    input.value = '';
-
-    // Không cần setTimeout ở đây nữa vì renderMessage sẽ xử lý
-}*/
-
-// render tin nhắn
-/*function renderMessage(m) {
-    const box = document.getElementById('chatMessages');
-    if (!box) return;
-
-    const isMe = m.senderId == currentUserId;
-
-    const div = document.createElement('div');
-    div.className = "d-flex " + (isMe ? "justify-content-end" : "justify-content-start");
-
-    div.innerHTML = `
-        <div class="d-flex ${isMe ? 'flex-row-reverse' : ''} align-items-end gap-2">
-            <img src="${m.senderAvatar || '/default-avatar.png'}" 
-                 class="rounded-circle" width="35" height="35" 
-                 onerror="this.src='/default-avatar.png'">
-            <div class="${isMe ? 'bg-primary text-white' : 'bg-white border'} px-3 py-2 rounded-3">
-                ${m.content}
-            </div>
-        </div>
-    `;
-
-    box.appendChild(div);
-
-    // Luôn scroll xuống khi là tin nhắn của mình
-    // Khi nhận tin thì chỉ scroll nếu đang ở gần cuối
-    scrollToBottom(isMe);
-}*/

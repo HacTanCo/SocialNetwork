@@ -34,21 +34,21 @@ function sendAiMessage() {
     const token = document.querySelector('meta[name="_csrf"]').content;
     const header = document.querySelector('meta[name="_csrf_header"]').content;
 
-	fetch("/ai/chat", {
-	    method: "POST",
-	    headers: {
-	        "Content-Type": "application/x-www-form-urlencoded",
-	        [header]: token
-	    },
-	    body: "message=" + encodeURIComponent(message)
-	})
-	.then(res => res.json())
-	.then(data => {
-	    updateMessage(loadingId, data.reply);
-	})
-	.catch(() => {
-	    updateMessage(loadingId, "Lỗi rồi 😢");
-	});
+    fetch("/ai/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            [header]: token
+        },
+        body: "message=" + encodeURIComponent(message)
+    })
+        .then(res => res.json())
+        .then(data => {
+            updateMessage(loadingId, data.reply);
+        })
+        .catch(() => {
+            updateMessage(loadingId, "Lỗi rồi 😢");
+        });
 }
 
 // ================= ENTER =================
@@ -96,6 +96,11 @@ function scrollToBottom() {
 
 // ================= LOAD KHI MỞ MODAL =================
 document.getElementById("aiChatModal")
-    .addEventListener("show.bs.modal", function () {
+    .addEventListener("shown.bs.modal", function() {
         loadAIHistory();
+
+        // delay nhẹ để chắc chắn DOM render xong
+        setTimeout(() => {
+            scrollToBottom();
+        }, 50);
     });

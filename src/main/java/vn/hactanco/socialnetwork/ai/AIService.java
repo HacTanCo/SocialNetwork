@@ -21,12 +21,12 @@ public class AIService {
 
 	@Value("${groq.api.key}")
 	private String API_KEY;
-
-	private static final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
+	@Value("${groq.api.url}")
+	private String API_URL;
+	@Value("${groq.api.model}")
+	private String MODEL;
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	// ================= CORE CALL =================
 	public String callGroq(String message) throws Exception {
 
 		URL url = new URL(API_URL);
@@ -39,9 +39,9 @@ public class AIService {
 		conn.setReadTimeout(10000);
 		conn.setDoOutput(true);
 
-		// 🔥 build JSON ngay tại đây
+		// build JSON ngay tại đây
 		ObjectNode body = mapper.createObjectNode();
-		body.put("model", "llama-3.3-70b-versatile");
+		body.put("model", MODEL);
 
 		ArrayNode messages = mapper.createArrayNode();
 
@@ -52,7 +52,15 @@ public class AIService {
 		messages.add(msg);
 
 		body.set("messages", messages);
-
+//		{
+//			  "model": "llama-3.3-70b-versatile",
+//			  "messages": [
+//			    {
+//			      "role": "user",
+//			      "content": "hello"
+//			    }
+//			  ]
+//		}
 		String jsonBody = mapper.writeValueAsString(body);
 
 		try (OutputStream os = conn.getOutputStream()) {

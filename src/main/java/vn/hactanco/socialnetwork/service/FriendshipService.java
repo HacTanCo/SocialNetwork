@@ -43,7 +43,6 @@ public class FriendshipService {
 			fs.setStatus(FriendshipStatus.ACCEPTED);
 			friendshipRepository.save(fs);
 			// notification accept luôn
-
 			notificationService.createNotification(userId, targetId, name + " đã chấp nhận lời mời kết bạn của bạn",
 					"FRIEND_ACCEPT", null);
 			return;

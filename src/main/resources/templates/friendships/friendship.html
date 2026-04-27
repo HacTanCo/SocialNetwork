@@ -635,12 +635,48 @@
 	<script th:src="@{/assets/js/notification.js}"></script>
 	<!-- <script th:src="@{/assets/js/ai-chat.js}"></script>-->
 	<script>
-	    window.currentUserId = [[${session.USER.id}]];
+	    window.currentUserId = "[[${session.USER.id}]]";
+		window.currentUserName = "[[${session.USER.name}]]";
+		   connectWS(); 
 		loadUnreadCount();
 		loadUnreadMessageCount();
 		initUnreadMessage(); 
 	</script>
-	
+	<div id="callModal" style="
+	    display:none;
+	    position:fixed;
+	    inset:0;
+	    background:black;
+	    z-index:99999;
+	">
+
+	    <video id="localVideo" autoplay muted style="
+	        position:absolute;
+	        bottom:20px;
+	        right:20px;
+	        width:200px;
+	    "></video>
+
+	    <video id="remoteVideo" autoplay style="
+	        width:100%;
+	        height:100%;
+	        object-fit:cover;
+	    "></video>
+
+	    <button onclick="endCall()" style="
+	        position:absolute;
+	        bottom:30px;
+	        left:50%;
+	        transform:translateX(-50%);
+	        background:red;
+	        color:white;
+	        padding:10px 20px;
+	        border:none;
+	        border-radius:10px;
+	    ">
+	        End
+	    </button>
+	</div>
 </body>
 
 </html>
