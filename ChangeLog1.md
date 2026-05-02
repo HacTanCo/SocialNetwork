@@ -109,7 +109,7 @@ function(message) {
  ## Remove friend from profile page
 
 # Profile
- ## View profile with ib
+ ## View profile with id
  ## View profile when we hover at avatar ("/api/user/{id}")
  - const rect = target.getBoundingClientRect(); Lấy vị trí của element được click/hover
  - target = element bạn vừa click (avatar, username...)

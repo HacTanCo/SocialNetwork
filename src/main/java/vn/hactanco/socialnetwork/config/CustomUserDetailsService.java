@@ -23,9 +23,20 @@ public class CustomUserDetailsService implements UserDetailsService {
 		if (myUser == null) {
 			throw new UsernameNotFoundException("user not found");
 		}
-		return new User(myUser.getEmail(), myUser.getPassword(),
-				Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + myUser.getRole().getName())));
 
+		// Kiểm tra tài khoản bị khóa: trả về UserDetails với enabled=false
+		// Spring Security sẽ tự động throw DisabledException
+		boolean isEnabled = myUser.getIsActive() == null || myUser.getIsActive();
+
+		return new User(
+				myUser.getEmail(),
+				myUser.getPassword(),
+				isEnabled,           // enabled
+				true,                // accountNonExpired
+				true,                // credentialsNonExpired
+				true,                // accountNonLocked
+				Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + myUser.getRole().getName()))
+		);
 	}
 
 }

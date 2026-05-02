@@ -102,7 +102,16 @@ public class CommentController {
 		Long commentId = Long.valueOf(body.get("commentId").toString());
 		String content = body.get("content").toString();
 
+		// Lấy postId trước khi update
+		Long postId = commentService.getPostIdByCommentId(commentId);
+
 		boolean updated = commentService.updateComment(commentId, content, user);
+
+		if (updated && postId != null) {
+			// 🔥 gửi realtime cho tất cả client
+			messagingTemplate.convertAndSend("/topic/comments/" + postId,
+					Map.of("type", "UPDATE", "commentId", commentId, "content", content));
+		}
 
 		return Map.of("success", updated);
 	}
@@ -123,6 +132,13 @@ public class CommentController {
 		boolean deleted = commentService.deleteComment(commentId, user);
 
 		long newCount = commentService.countByPostId(postId);
+
+		if (deleted && postId != null) {
+			// 🔥 gửi realtime cho tất cả client
+			messagingTemplate.convertAndSend("/topic/comments/" + postId,
+					Map.of("type", "DELETE", "commentId", commentId, "commentCount", newCount));
+		}
+
 		return Map.of("success", deleted, "commentCount", newCount);
 	}
 	// @GetMapping("/post/{postId}")

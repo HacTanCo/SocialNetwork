@@ -18,11 +18,11 @@ function connectWS() {
     chatStompClient.connect({}, function() {
         chatStompClient.subscribe('/topic/call/' + currentUserId, async function(msg) {
             const data = JSON.parse(msg.body);
-            // 🔥 THÊM DÒNG NÀY - debug
+            
             console.log("Received call msg:", data.type, "from:", data.from, "to:", data.to, "me:", currentUserId);
             if (data.type === "offer") {
 
-                // ❗ CHỈ xử lý nếu mình là người nhận
+                // CHỈ xử lý nếu mình là người nhận
                 if (data.to != currentUserId) return;
 
                 handleIncomingCall(data);
@@ -35,7 +35,7 @@ function connectWS() {
 
                 await peerConnection.setRemoteDescription(JSON.parse(data.data));
 
-                // ✅ ADD ICE pending
+                // Thêm các ICE candidate đã chờ sẵn
                 pendingCandidates.forEach(c => peerConnection.addIceCandidate(c));
                 pendingCandidates = [];
             }
@@ -48,7 +48,7 @@ function connectWS() {
                 if (peerConnection && peerConnection.remoteDescription) {
                     await peerConnection.addIceCandidate(candidate);
                 } else {
-                    // ❗ chưa set remote → lưu lại
+                    // Chưa có remote description → lưu tạm
                     pendingCandidates.push(candidate);
                 }
             }
@@ -92,7 +92,7 @@ function connectWS() {
                     if (!existing.isConnected) return;
 
                     const bubble = existing.querySelector(".chat-bubble");
-                    if (!bubble) return; //  FIX 1: chặn null
+                    if (!bubble) return; //  FIX 1: chặn null// Chưa có remote description → lưu tạm
 
                     const contentDiv = bubble.querySelector(".msg-content");
                     if (!contentDiv) return; //  FIX 2: chặn null
@@ -298,22 +298,23 @@ function openChatBox(btn) {
 
 async function startVideoCall(friendId) {
 	console.log("currentUserName =", currentUserName);
-	currentCallRemoteId = friendId;
-    pendingCandidates = [];
+    currentCallRemoteId = friendId; // Lưu ID người nhận
+    pendingCandidates = []; // Reset danh sách ICE candidate chờ
+    // Bước 1: Lấy camera + mic của người gọi
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
     showCallUI(localStream);
-
+    // Bước 2: Tạo PeerConnection (WebRTC)
     peerConnection = new RTCPeerConnection(config);
-
+    // Thêm tất cả track (video + audio) vào connection
     localStream.getTracks().forEach(track =>
         peerConnection.addTrack(track, localStream)
     );
-
+    // Khi nhận được stream từ bên kia → hiển thị vào remoteVideo
     peerConnection.ontrack = e => {
         document.getElementById("remoteVideo").srcObject = e.streams[0];
     };
-
+    // Khi có ICE candidate → gửi qua WebSocket cho bên kia
     peerConnection.onicecandidate = e => {
         if (e.candidate) {
             chatStompClient.send("/app/call", {}, JSON.stringify({
@@ -324,10 +325,10 @@ async function startVideoCall(friendId) {
             }));
         }
     };
-
+    // Bước 3: Tạo Offer (SDP)
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
-
+    // Bước 4: Gửi Offer qua WebSocket đến người nhận
     chatStompClient.send("/app/call", {}, JSON.stringify({
         type: "offer",
         from: currentUserId,
@@ -446,12 +447,12 @@ async function acceptCall(data) {
             }));
         }
     };
-
+    // Bước quan trọng: set Offer từ người gọi vào remoteDescription
     await peerConnection.setRemoteDescription(JSON.parse(data.data));
-
+    // Thêm các ICE candidate đã nhận trước đó (nếu có)
     pendingCandidates.forEach(c => peerConnection.addIceCandidate(c));
     pendingCandidates = [];
-
+    // Tạo Answer
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
 
@@ -473,8 +474,8 @@ function endCall() {
     }
 
     if (localStream) {
-        localStream.getTracks().forEach(t => t.stop()); // ✅ đã có
-        localStream = null; // ❌ thiếu dòng này → stream cũ không được giải phóng
+        localStream.getTracks().forEach(t => t.stop()); // Tắt camera & mic
+        localStream = null;
     }
 
     document.getElementById("callModal").style.display = "none";

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import vn.hactanco.socialnetwork.model.PostMedia;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.CommentRepository;
 import vn.hactanco.socialnetwork.repository.LikeRepository;
+import vn.hactanco.socialnetwork.repository.NotificationRepository;
 import vn.hactanco.socialnetwork.repository.PostRepository;
 
 @Service
@@ -34,6 +36,7 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final LikeRepository likeRepository;
 	private final CommentRepository commentRepository;
+	private final NotificationRepository notificationRepository;
 	@Value("${file.upload-dir}")
 	private String uploadDir;
 
@@ -246,6 +249,7 @@ public class PostService {
 //		return postRepository.findAllByOrderByCreatedAtDesc(pageable);
 //	}
 
+	@Transactional
 	public void deletePost(Long postId, User user) {
 
 		Post post = postRepository.findById(postId)
@@ -253,22 +257,29 @@ public class PostService {
 		if (!post.getUser().getId().equals(user.getId())) {
 			throw new RuntimeException("Không có quyền xóa bài viết");
 		}
+
+		// Thu thập đường dẫn file trước khi xóa DB
+		List<String> filePaths = new ArrayList<>();
 		if (post.getMedias() != null) {
 			for (PostMedia media : post.getMedias()) {
-
 				String mediaPath = media.getMediaUrl();
-				// ví dụ: /uploads/images/abc.jpg
-
 				String filePath = uploadDir + mediaPath.replace("/uploads/", "");
-
-				File file = new File(filePath);
-
-				if (file.exists()) {
-					file.delete();
-				}
+				filePaths.add(filePath);
 			}
 		}
+
+		// Xóa notification liên quan đến post trước (FK constraint)
+		notificationRepository.deleteByPostId(postId);
+		// Xóa post (cascade sẽ xóa medias, likes, comments)
 		postRepository.delete(post);
+
+		// Xóa file vật lý SAU KHI DB thành công
+		for (String filePath : filePaths) {
+			File file = new File(filePath);
+			if (file.exists()) {
+				file.delete();
+			}
+		}
 	}
 
 	public void updatePost(Long postId, String content, User user) {
@@ -293,5 +304,52 @@ public class PostService {
 
 	public Post findById(Long id) {
 		return postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post không tồn tại"));
+	}
+
+	// ==================== ADMIN METHODS ====================
+
+	public Page<Post> findAllPaged(int page, int size) {
+		return postRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size));
+	}
+
+	public List<Post> searchPostsAdmin(String keyword) {
+		return postRepository.searchPostsAdmin("%" + keyword + "%");
+	}
+
+	@Transactional
+	public void adminDeletePost(Long postId) {
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new ResourceNotFoundException("Post không tồn tại"));
+
+		// Thu thập đường dẫn file trước khi xóa DB
+		List<String> filePaths = new ArrayList<>();
+		if (post.getMedias() != null) {
+			for (PostMedia media : post.getMedias()) {
+				String mediaPath = media.getMediaUrl();
+				String filePath = uploadDir + mediaPath.replace("/uploads/", "");
+				filePaths.add(filePath);
+			}
+		}
+
+		// Xóa notification liên quan đến post trước (FK constraint)
+		notificationRepository.deleteByPostId(postId);
+		// Xóa post (cascade sẽ xóa medias, likes, comments)
+		postRepository.delete(post);
+
+		// Xóa file vật lý SAU KHI DB thành công
+		for (String filePath : filePaths) {
+			File file = new File(filePath);
+			if (file.exists()) {
+				file.delete();
+			}
+		}
+	}
+
+	public long countAll() {
+		return postRepository.count();
+	}
+
+	public List<Post> getRecentPosts() {
+		return postRepository.findTop5ByOrderByCreatedAtDesc();
 	}
 }

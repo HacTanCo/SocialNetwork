@@ -25,13 +25,23 @@ import vn.hactanco.socialnetwork.dto.ResetPasswordRequest;
 import vn.hactanco.socialnetwork.dto.VerifyOtpRequest;
 import vn.hactanco.socialnetwork.exception.ResourceAlreadyExistsException;
 import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
+import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.service.AuthService;
+import vn.hactanco.socialnetwork.service.EmailService;
+import vn.hactanco.socialnetwork.service.UserService;
 
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
 
 	private final AuthService authService;
+	private final UserService userService;
+	private final EmailService emailService;
+
+	@GetMapping("/access-denied")
+	public String accessDenied() {
+		return "auth/access-denied";
+	}
 
 	@GetMapping("/redirect")
 	public String redirectByRole(Authentication authentication) {
@@ -43,11 +53,6 @@ public class AuthController {
 		}
 
 		return "redirect:/home";
-	}
-
-	@GetMapping("/admin/dashboard")
-	public String dashboardPage() {
-		return "admin/dashboard";
 	}
 
 	@GetMapping("/register")
@@ -269,4 +274,51 @@ public class AuthController {
 		return ResponseEntity.ok("OK");
 	}
 
+	// ==================== YÊU CẦU MỞ KHÓA TÀI KHOẢN ====================
+
+	@PostMapping("/request-unlock")
+	public String requestUnlock(@RequestParam String email, RedirectAttributes redirectAttributes,
+			jakarta.servlet.http.HttpServletRequest request) {
+
+		User user = userService.findUserByEmail(email);
+
+		if (user == null) {
+			redirectAttributes.addFlashAttribute("error", "Email không tồn tại trong hệ thống.");
+			return "redirect:/login";
+		}
+
+		if (user.getIsActive() == null || user.getIsActive()) {
+			redirectAttributes.addFlashAttribute("error", "Tài khoản này không bị khóa.");
+			return "redirect:/login";
+		}
+
+		// Tạo token mở khóa
+		String token = userService.generateUnlockToken(user.getId());
+
+		// Tạo URL mở khóa
+		String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+		String unlockUrl = baseUrl + "/unlock-account?token=" + token;
+
+		// Gửi email cho admin
+		String adminEmail = "hactanco19@gmail.com";
+		emailService.sendUnlockRequest(adminEmail, user.getEmail(), user.getName(), unlockUrl);
+
+		redirectAttributes.addFlashAttribute("success",
+				"Yêu cầu mở khóa đã được gửi đến admin. Vui lòng chờ phản hồi.");
+		return "redirect:/login";
+	}
+
+	@GetMapping("/unlock-account")
+	public String unlockAccount(@RequestParam String token, RedirectAttributes redirectAttributes) {
+
+		boolean success = userService.unlockByToken(token);
+
+		if (success) {
+			redirectAttributes.addFlashAttribute("success", "Tài khoản đã được mở khóa thành công!");
+		} else {
+			redirectAttributes.addFlashAttribute("error", "Link mở khóa không hợp lệ hoặc đã được sử dụng.");
+		}
+
+		return "redirect:/admin/users";
+	}
 }

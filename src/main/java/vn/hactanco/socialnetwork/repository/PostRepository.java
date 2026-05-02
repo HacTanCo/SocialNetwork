@@ -35,4 +35,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	Page<Long> findPostIdsByUser(Long userId, Pageable pageable);
 
 	long countByUser_Id(Long userId);
+
+	// Admin: tất cả post phân trang
+	Page<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+	// Admin: tìm kiếm post theo content hoặc user name
+	@Query("SELECT p FROM Post p JOIN FETCH p.user WHERE LOWER(p.content) LIKE LOWER(:keyword) OR LOWER(p.user.name) LIKE LOWER(:keyword) ORDER BY p.createdAt DESC")
+	List<Post> searchPostsAdmin(String keyword);
+
+	// Admin: đếm post theo tháng (6 tháng gần nhất)
+	@Query(value = "SELECT MONTH(created_at) as m, YEAR(created_at) as y, COUNT(*) as cnt FROM posts WHERE created_at >= DATEADD(MONTH, -6, GETDATE()) GROUP BY MONTH(created_at), YEAR(created_at) ORDER BY y, m", nativeQuery = true)
+	List<Object[]> countPostsPerMonth();
+
+	// Admin: lấy 5 post mới nhất
+	List<Post> findTop5ByOrderByCreatedAtDesc();
 }

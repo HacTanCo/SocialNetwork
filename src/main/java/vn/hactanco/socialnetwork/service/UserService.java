@@ -2,9 +2,12 @@ package vn.hactanco.socialnetwork.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,8 +16,10 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import vn.hactanco.socialnetwork.dto.UserProfileDTO;
 import vn.hactanco.socialnetwork.exception.ResourceNotFoundException;
+import vn.hactanco.socialnetwork.model.Role;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.PostRepository;
+import vn.hactanco.socialnetwork.repository.RoleRepository;
 import vn.hactanco.socialnetwork.repository.UserRepository;
 
 @Service
@@ -102,6 +107,72 @@ public class UserService {
 		}
 
 		userRepository.save(user);
+	}
+
+	// ==================== ADMIN METHODS ====================
+
+	public List<User> getAllUsersWithRole() {
+		return userRepository.findAllWithRole();
+	}
+
+	public List<User> searchUsers(String keyword) {
+		return userRepository.searchUsersWithRole("%" + keyword + "%");
+	}
+
+	public void toggleActive(Long userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+		user.setIsActive(user.getIsActive() == null || !user.getIsActive());
+		userRepository.save(user);
+	}
+
+	public void changeRole(Long userId, Long roleId, RoleRepository roleRepository) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+		Role role = roleRepository.findById(roleId)
+				.orElseThrow(() -> new ResourceNotFoundException("Role không tồn tại"));
+		user.setRole(role);
+		userRepository.save(user);
+	}
+
+	public void deleteUser(Long userId) {
+		userRepository.deleteById(userId);
+	}
+
+	public long countAll() {
+		return userRepository.count();
+	}
+
+	// ==================== UNLOCK TOKEN ====================
+
+	// Lưu token mở khóa: token -> userId
+	private final Map<String, Long> unlockTokens = new HashMap<>();
+
+	/**
+	 * Tạo token mở khóa cho user bị khóa
+	 */
+	public String generateUnlockToken(Long userId) {
+		String token = UUID.randomUUID().toString();
+		unlockTokens.put(token, userId);
+		return token;
+	}
+
+	/**
+	 * Mở khóa tài khoản bằng token
+	 */
+	public boolean unlockByToken(String token) {
+		Long userId = unlockTokens.remove(token);
+		if (userId == null) {
+			return false;
+		}
+		Optional<User> userOpt = userRepository.findById(userId);
+		if (userOpt.isEmpty()) {
+			return false;
+		}
+		User user = userOpt.get();
+		user.setIsActive(true);
+		userRepository.save(user);
+		return true;
 	}
 
 }

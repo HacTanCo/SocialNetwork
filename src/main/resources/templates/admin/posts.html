@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Quản lý Post - Admin</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" th:href="@{/assets/css/admin.css}">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+</head>
+
+<body>
+    <!-- SIDEBAR -->
+    <div th:replace="~{admin/layout/admin-layout :: sidebar('posts')}"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="admin-main">
+        <!-- HEADER -->
+        <div th:replace="~{admin/layout/admin-layout :: header('Quản lý bài viết')}"></div>
+
+        <!-- TOAST -->
+        <div th:replace="~{admin/layout/admin-layout :: toasts}"></div>
+
+        <!-- CONTENT -->
+        <div class="admin-content">
+            <div class="admin-table-wrapper">
+                <div class="admin-table-header">
+                    <h6><i class="bi bi-file-earmark-text-fill me-2"></i>Danh sách bài viết</h6>
+
+                    <!-- Search -->
+                    <form th:action="@{/admin/posts}" method="get" class="admin-search">
+                        <input type="text" name="keyword" placeholder="Tìm theo nội dung hoặc tên tác giả..."
+                               th:value="${keyword}">
+                        <button type="submit">
+                            <i class="bi bi-search"></i> Tìm
+                        </button>
+                    </form>
+                </div>
+
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tác giả</th>
+                            <th>Nội dung</th>
+                            <th>Thời gian</th>
+                            <th width="180">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="post : ${posts}">
+                            <td th:text="${post.id}"></td>
+                            <td>
+                                <div class="user-info-cell" th:if="${post.user != null}">
+                                    <img th:src="@{${post.user.avatar}}" alt="avatar">
+                                    <div>
+                                        <div class="user-name" th:text="${post.user.name}"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="content-truncate" th:text="${post.content}"></div>
+                            </td>
+                            <td>
+                                <small class="text-muted"
+                                       th:text="${post.createdAt != null} ? ${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(post.createdAt)} : 'N/A'">
+                                </small>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <!-- Xem chi tiết -->
+                                    <button type="button" class="btn-admin btn-edit"
+                                            th:onclick="|viewPostDetail(${post.id})|">
+                                        <i class="bi bi-eye"></i> Xem
+                                    </button>
+
+                                    <!-- Xóa -->
+                                    <form th:action="@{/admin/posts/{id}/delete(id=${post.id})}"
+                                          method="post" style="display: inline;">
+                                        <button type="submit" class="btn-admin btn-delete"
+                                                th:onclick="|return confirm('Xóa bài viết #${post.id}?')|">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(posts)}">
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                Không tìm thấy bài viết nào
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div th:replace="~{admin/layout/admin-layout :: pagination('/admin/posts', ${currentPage}, ${totalPages}, ${keyword})}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODAL XEM CHI TIẾT BÀI VIẾT ============ -->
+    <div class="modal fade" id="postDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                    <h6 class="modal-title fw-bold">
+                        <i class="bi bi-file-earmark-text me-2"></i>Chi tiết bài viết
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Author info -->
+                    <div class="d-flex align-items-center gap-3 p-3" style="border-bottom: 1px solid #e2e8f0;">
+                        <img id="detail-avatar" src="" class="rounded-circle"
+                             style="width: 44px; height: 44px; object-fit: cover;">
+                        <div>
+                            <div id="detail-username" class="fw-bold" style="font-size: 15px;"></div>
+                            <small id="detail-time" class="text-muted"></small>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div id="detail-content" class="p-3" style="font-size: 15px; line-height: 1.6; white-space: pre-wrap;"></div>
+
+                    <!-- Media -->
+                    <div id="detail-media" class="px-3 pb-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function viewPostDetail(postId) {
+            fetch(`/admin/posts/${postId}/detail`)
+                .then(res => res.json())
+                .then(post => {
+                    document.getElementById('detail-avatar').src = post.userAvatar || '/default-avatar.png';
+                    document.getElementById('detail-username').innerText = post.userName || 'N/A';
+                    document.getElementById('detail-time').innerText = post.timeAgo || '';
+                    document.getElementById('detail-content').innerText = post.content || '';
+
+                    // Render media
+                    const mediaContainer = document.getElementById('detail-media');
+                    mediaContainer.innerHTML = '';
+
+                    if (post.medias && post.medias.length > 0) {
+                        if (post.medias.length === 1) {
+                            const m = post.medias[0];
+                            if (m.type === 'IMAGE') {
+                                mediaContainer.innerHTML = `<div style="height:450px; display:flex; align-items:center; justify-content:center; background:#f1f5f9; border-radius:8px;"><img src="${m.url}" class="rounded" style="max-width:100%; max-height:450px; object-fit:contain;"></div>`;
+                            } else {
+                                mediaContainer.innerHTML = `<div style="height:450px; display:flex; align-items:center; justify-content:center; background:#000; border-radius:8px;"><video controls style="max-width:100%; max-height:450px;"><source src="${m.url}"></video></div>`;
+                            }
+                        } else {
+                            let items = '';
+                            post.medias.forEach((m, i) => {
+                                const active = i === 0 ? 'active' : '';
+                                if (m.type === 'IMAGE') {
+                                    items += `<div class="carousel-item ${active}"><div style="height:450px; display:flex; align-items:center; justify-content:center; background:#f1f5f9; border-radius:8px;"><img src="${m.url}" style="max-width:100%; max-height:450px; object-fit:contain;"></div></div>`;
+                                } else {
+                                    items += `<div class="carousel-item ${active}"><div style="height:450px; display:flex; align-items:center; justify-content:center; background:#000; border-radius:8px;"><video controls style="max-width:100%; max-height:450px;"><source src="${m.url}"></video></div></div>`;
+                                }
+                            });
+
+                            mediaContainer.innerHTML = `
+                                <div id="postMediaCarousel" class="carousel slide" data-bs-ride="false">
+                                    <div class="carousel-inner">${items}</div>
+                                </div>
+                                <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" type="button" data-bs-target="#postMediaCarousel" data-bs-slide="prev" style="width:36px;height:36px;">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <small class="text-muted">${post.medias.length} ảnh/video</small>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" type="button" data-bs-target="#postMediaCarousel" data-bs-slide="next" style="width:36px;height:36px;">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    new bootstrap.Modal(document.getElementById('postDetailModal')).show();
+                })
+                .catch(err => {
+                    console.error('Lỗi tải chi tiết bài viết:', err);
+                    alert('Không thể tải chi tiết bài viết');
+                });
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const successToast = document.getElementById("successToast");
+            const errorToast = document.getElementById("errorToast");
+            if (successToast) new bootstrap.Toast(successToast, { delay: 3000 }).show();
+            if (errorToast) new bootstrap.Toast(errorToast, { delay: 3000 }).show();
+        });
+    </script>
+</body>
+
+</html>

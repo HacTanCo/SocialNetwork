@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <title>Quản lý Role - Admin</title>
+    <title>Quản lý Comment - Admin</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -18,12 +18,12 @@
 
 <body>
     <!-- SIDEBAR -->
-    <div th:replace="~{admin/layout/admin-layout :: sidebar('roles')}"></div>
+    <div th:replace="~{admin/layout/admin-layout :: sidebar('comments')}"></div>
 
     <!-- MAIN CONTENT -->
     <div class="admin-main">
         <!-- HEADER -->
-        <div th:replace="~{admin/layout/admin-layout :: header('Quản lý Role')}"></div>
+        <div th:replace="~{admin/layout/admin-layout :: header('Quản lý bình luận')}"></div>
 
         <!-- TOAST -->
         <div th:replace="~{admin/layout/admin-layout :: toasts}"></div>
@@ -32,54 +32,64 @@
         <div class="admin-content">
             <div class="admin-table-wrapper">
                 <div class="admin-table-header">
-                    <h6><i class="bi bi-shield-fill-check me-2"></i>Danh sách Role</h6>
-                    <a th:href="@{/roles/create}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus-lg"></i> Tạo Role mới
-                    </a>
+                    <h6><i class="bi bi-chat-dots-fill me-2"></i>Danh sách bình luận</h6>
                 </div>
 
                 <table class="admin-table">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Tên</th>
-                            <th>Mô tả</th>
-                            <th width="200">Hành động</th>
+                            <th>Người bình luận</th>
+                            <th>Nội dung</th>
+                            <th>Post ID</th>
+                            <th>Thời gian</th>
+                            <th width="100">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="role : ${roles}">
-                            <td th:text="${role.id}"></td>
+                        <tr th:each="comment : ${comments}">
+                            <td th:text="${comment.id}"></td>
                             <td>
-                                <span class="badge-role"
-                                      th:classappend="${role.name == 'ADMIN'} ? 'admin' : ''"
-                                      th:text="${role.name}">
-                                </span>
+                                <div class="user-info-cell">
+                                    <img th:src="@{${comment.user.avatar}}" alt="avatar">
+                                    <div>
+                                        <div class="user-name" th:text="${comment.user.name}"></div>
+                                    </div>
+                                </div>
                             </td>
-                            <td th:text="${role.description}"></td>
                             <td>
-                                <a th:href="@{/roles/{id}(id=${role.id})}" class="btn-admin btn-toggle">
-                                    <i class="bi bi-pencil"></i> Sửa
-                                </a>
-
-                                <form th:action="@{/roles/delete/{id}(id=${role.id})}" method="post"
-                                      style="display:inline">
+                                <div class="content-truncate" th:text="${comment.content}"></div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary" th:text="'#' + ${comment.post.id}"></span>
+                            </td>
+                            <td>
+                                <small class="text-muted"
+                                       th:text="${comment.createdAt != null} ? ${T(vn.hactanco.socialnetwork.helper.TinhThoiGian).timeAgo(comment.createdAt)} : 'N/A'">
+                                </small>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/comments/{id}/delete(id=${comment.id})}"
+                                      method="post" style="display: inline;">
                                     <button type="submit" class="btn-admin btn-delete"
-                                            onclick="return confirm('Bạn có chắc muốn xóa role này?')">
+                                            th:onclick="|return confirm('Xóa comment #${comment.id}?')|">
                                         <i class="bi bi-trash"></i> Xóa
                                     </button>
                                 </form>
                             </td>
                         </tr>
 
-                        <tr th:if="${#lists.isEmpty(roles)}">
-                            <td colspan="4" class="text-center text-muted py-4">
+                        <tr th:if="${#lists.isEmpty(comments)}">
+                            <td colspan="6" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                Không có role nào
+                                Không có bình luận nào
                             </td>
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- Pagination -->
+                <div th:replace="~{admin/layout/admin-layout :: pagination('/admin/comments', ${currentPage}, ${totalPages}, ${null})}"></div>
             </div>
         </div>
     </div>

@@ -120,6 +120,20 @@ public class CommentService {
 	public Long getPostIdByCommentId(Long commentId) {
 		return commentRepository.findById(commentId).map(c -> c.getPost().getId()).orElse(null);
 	}
+
+	// ==================== ADMIN METHODS ====================
+
+	public List<Comment> findAllWithUserAndPost() {
+		return commentRepository.findAllWithUserAndPost();
+	}
+
+	public void adminDeleteComment(Long commentId) {
+		commentRepository.deleteById(commentId);
+	}
+
+	public long countAll() {
+		return commentRepository.count();
+	}
 	// private final CommentRepository commentRepository;
 	// private final PostRepository postRepository;
 	//

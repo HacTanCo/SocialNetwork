@@ -31,7 +31,8 @@ public class UserController {
 	private final FriendshipService friendshipService;
 
 	@GetMapping("/profile/{userId}")
-	public String profile(@PathVariable Long userId, Model model, HttpSession session) {
+	public String profile(@PathVariable Long userId, Model model, HttpSession session,
+			@RequestParam(defaultValue = "0") int page) {
 
 		User currentUser = (User) session.getAttribute("USER");
 
@@ -40,7 +41,6 @@ public class UserController {
 		int friendCount = friendshipService.countFriends(userId);
 		long postCount = postService.countPostByUserId(userId);
 		// 🔥 lấy post (có pagination)
-		int page = 0;
 		int size = 10;
 
 		List<PostResponseDTO> posts = postService.getPostsByUserDTO(userId, page, size, currentUser);

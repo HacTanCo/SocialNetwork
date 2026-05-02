@@ -20,6 +20,14 @@ function connectWS(postId) {
             if (res.type === "REPLY") {
                 appendReply(res.parentId, res.data);
             }
+
+            if (res.type === "UPDATE") {
+                handleUpdateComment(res.commentId, res.content);
+            }
+
+            if (res.type === "DELETE") {
+                handleDeleteComment(res.commentId, res.commentCount);
+            }
         });
     });
 }
@@ -224,7 +232,7 @@ function appendReply(parentId, r) {
     const currentUserId = window.currentUserId;
     let actions = '';
 
-    if (r.userId === window.currentUserId) {
+    if (r.userId == window.currentUserId) {
         actions = `
         <div class="dropdown">
             <button class="btn p-0 border-0 text-muted" data-bs-toggle="dropdown">
@@ -306,7 +314,7 @@ function appendNewComment(c) {
     const currentUserId = window.currentUserId;
     let actions = '';
 
-    if (c.userId === currentUserId) {
+    if (c.userId == currentUserId) {
         actions = `
         <div class="dropdown">
             <button class="btn p-0 border-0 text-muted" data-bs-toggle="dropdown">
@@ -519,17 +527,10 @@ function deleteComment(commentId) {
     })
         .then(res => res.json())
         .then(data => {
-            if (data.success) {
-                loadComments(currentPostId);
-
-                const el = document.querySelector(
-                    `.comment-count[data-post-id="${currentPostId}"]`
-                );
-
-                if (el) {
-                    el.innerText = data.commentCount;
-                }
+            if (!data.success) {
+                alert('Không thể xóa comment');
             }
+            // WebSocket sẽ xử lý cập nhật UI cho tất cả client
         });
 }
 function startEdit(id) {
@@ -562,10 +563,44 @@ function saveEdit(id) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // update UI ngay lập tức
-                document.getElementById(`comment-content-${id}`).innerText = content;
-
+                // WebSocket sẽ xử lý cập nhật UI cho tất cả client
                 cancelEdit(id);
             }
         });
+}
+
+// 🔥 Xử lý realtime: cập nhật nội dung comment
+function handleUpdateComment(commentId, newContent) {
+    const contentEl = document.getElementById(`comment-content-${commentId}`);
+    if (contentEl) {
+        contentEl.innerText = newContent;
+    }
+    // Cập nhật giá trị trong input edit (nếu đang mở)
+    const inputEl = document.getElementById(`comment-input-${commentId}`);
+    if (inputEl) {
+        inputEl.value = newContent;
+    }
+}
+
+// 🔥 Xử lý realtime: xóa comment khỏi DOM
+function handleDeleteComment(commentId, commentCount) {
+    // Tìm và xóa phần tử comment khỏi DOM
+    const contentEl = document.getElementById(`comment-content-${commentId}`);
+    if (contentEl) {
+        // Tìm phần tử cha gần nhất chứa toàn bộ comment
+        // Reply trước (vì reply nằm bên trong parent comment .mb-2)
+        let commentDiv = contentEl.closest('.d-flex.gap-2.align-items-start.mt-2');
+        if (!commentDiv) {
+            // Comment chính: div.mb-2
+            commentDiv = contentEl.closest('.mb-2');
+        }
+        if (commentDiv) {
+            commentDiv.remove();
+        }
+    }
+
+    // Cập nhật số comment trên bài viết
+    if (commentCount !== undefined) {
+        updateCommentCount(commentCount);
+    }
 }

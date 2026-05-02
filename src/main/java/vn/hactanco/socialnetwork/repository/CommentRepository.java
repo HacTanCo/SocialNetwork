@@ -1,7 +1,6 @@
 package vn.hactanco.socialnetwork.repository;
 
 import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -22,4 +21,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 	List<Object[]> countCommentsByPostIds(List<Long> postIds);
 
 	long countByPost_Id(Long postId);
+
+	// Admin: tất cả comment phân trang
+	@Query("SELECT c FROM Comment c JOIN FETCH c.user JOIN FETCH c.post ORDER BY c.createdAt DESC")
+	List<Comment> findAllWithUserAndPost();
 }

@@ -31,6 +31,8 @@ public class SecurityConfig {
 			PasswordEncoder passwordEncoder) {
 		DaoAuthenticationProvider dao = new DaoAuthenticationProvider(userDetailsService);
 		dao.setPasswordEncoder(passwordEncoder);
+		// Quan trọng: cho phép hiển thị lỗi DisabledException thay vì ẩn thành BadCredentials
+		dao.setHideUserNotFoundExceptions(true);
 		return dao;
 	}
 
@@ -50,16 +52,26 @@ public class SecurityConfig {
 				"/js/**", "/images/**", "/login", 
 				"/register", "/forgot-password",
 				"/verify-otp", "/reset-password",
-				"/chat/upload"
+				"/chat/upload",
+				"/request-unlock", "/unlock-account"
 				};
 		http.authorizeHttpRequests((requests) -> requests
 				.requestMatchers(WHITELIST).permitAll()
-//				.requestMatchers("/user/**").hasRole("ADMIN")
+				.requestMatchers("/admin/**").hasRole("ADMIN")
+				.requestMatchers("/roles/**").hasRole("ADMIN")
 				.anyRequest().authenticated());
+		http.exceptionHandling(e -> e.accessDeniedPage("/access-denied"));
 		http.formLogin(form -> form
 				.loginPage("/login")
 				.defaultSuccessUrl("/redirect")
 				.failureUrl("/login?error")
+				.failureHandler((request, response, exception) -> {
+					String errorParam = "error";
+					if (exception instanceof org.springframework.security.authentication.DisabledException) {
+						errorParam = "locked";
+					}
+					response.sendRedirect("/login?" + errorParam);
+				})
 				.permitAll());
 		// http.exceptionHandling(e -> e.accessDeniedPage("/access-deny"));
 		 http.sessionManagement(s ->s

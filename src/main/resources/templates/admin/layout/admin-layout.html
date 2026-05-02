@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<!-- ==================== SIDEBAR FRAGMENT ==================== -->
+<div th:fragment="sidebar(activePage)">
+    <nav class="admin-sidebar">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <div>
+                <h4>Admin Panel</h4>
+                <small>Social Network</small>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="sidebar-nav">
+            <div class="nav-label">Menu chính</div>
+
+            <div class="nav-item">
+                <a th:href="@{/admin/dashboard}" class="nav-link"
+                   th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a th:href="@{/admin/users}" class="nav-link"
+                   th:classappend="${activePage == 'users'} ? 'active' : ''">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Quản lý User</span>
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a th:href="@{/admin/posts}" class="nav-link"
+                   th:classappend="${activePage == 'posts'} ? 'active' : ''">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    <span>Quản lý Post</span>
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a th:href="@{/admin/comments}" class="nav-link"
+                   th:classappend="${activePage == 'comments'} ? 'active' : ''">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    <span>Quản lý Comment</span>
+                </a>
+            </div>
+
+            <div class="nav-label">Cài đặt</div>
+
+            <div class="nav-item">
+                <a th:href="@{/roles}" class="nav-link"
+                   th:classappend="${activePage == 'roles'} ? 'active' : ''">
+                    <i class="bi bi-shield-fill-check"></i>
+                    <span>Quản lý Role</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Logout -->
+        <div class="sidebar-footer">
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="logout-btn">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
+        </div>
+    </nav>
+</div>
+
+<!-- ==================== HEADER FRAGMENT ==================== -->
+<div th:fragment="header(pageTitle)">
+    <header class="admin-header">
+        <h5 th:text="${pageTitle}">Dashboard</h5>
+        <div class="header-actions">
+            <div class="admin-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+        </div>
+    </header>
+</div>
+
+<!-- ==================== TOAST FRAGMENT ==================== -->
+<div th:fragment="toasts">
+    <div class="admin-toast">
+        <div th:if="${success}" class="toast text-bg-success border-0" id="successToast">
+            <div class="d-flex">
+                <div class="toast-body" th:text="${success}"></div>
+                <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="toast text-bg-danger border-0" id="errorToast">
+            <div class="d-flex">
+                <div class="toast-body" th:text="${error}"></div>
+                <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== PAGINATION FRAGMENT ==================== -->
+<div th:fragment="pagination(baseUrl, currentPage, totalPages, keyword)">
+    <div class="admin-pagination" th:if="${totalPages > 1}">
+        <a th:if="${currentPage > 0}"
+           th:href="${keyword != null} ? |${baseUrl}?page=${currentPage - 1}&keyword=${keyword}| : |${baseUrl}?page=${currentPage - 1}|">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+
+        <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <span th:if="${i == currentPage}" class="current" th:text="${i + 1}"></span>
+            <a th:unless="${i == currentPage}"
+               th:href="${keyword != null} ? |${baseUrl}?page=${i}&keyword=${keyword}| : |${baseUrl}?page=${i}|"
+               th:text="${i + 1}"></a>
+        </th:block>
+
+        <a th:if="${currentPage < totalPages - 1}"
+           th:href="${keyword != null} ? |${baseUrl}?page=${currentPage + 1}&keyword=${keyword}| : |${baseUrl}?page=${currentPage + 1}|">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+</div>
+
+</html>
