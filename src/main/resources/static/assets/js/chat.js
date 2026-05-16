@@ -55,7 +55,7 @@ function connectWS() {
 
             if (data.type === "reject") {
 
-                // ❗ CHỈ xử lý nếu mình là người nhận reject
+                // CHỈ xử lý nếu mình là người nhận reject
                 if (data.to != currentUserId) return;
 
                 alert("Cuộc gọi bị từ chối");

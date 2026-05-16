@@ -14,7 +14,6 @@ import vn.hactanco.socialnetwork.model.Notification;
 import vn.hactanco.socialnetwork.model.Post;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.CommentRepository;
-import vn.hactanco.socialnetwork.repository.NotificationRepository;
 import vn.hactanco.socialnetwork.repository.PostRepository;
 
 @Service
@@ -22,7 +21,7 @@ import vn.hactanco.socialnetwork.repository.PostRepository;
 public class CommentService {
 	private final CommentRepository commentRepository;
 	private final PostRepository postRepository;
-	private final NotificationRepository notificationRepository;
+	private final NotificationService notificationService;
 
 	public Comment createComment(Long postId, String content, User user) {
 
@@ -32,10 +31,8 @@ public class CommentService {
 		// NOTIFICATION
 		Post post = saved.getPost();
 		if (!post.getUser().getId().equals(user.getId())) {
-			Notification n = Notification.builder().sender(user).receiver(post.getUser()).post(post).type("COMMENT")
-					.content(user.getName() + " đã bình luận bài viết của bạn").build();
-
-			notificationRepository.save(n);
+			notificationService.createNotification(user.getId(), post.getUser().getId(),
+					user.getName() + " đã bình luận bài viết của bạn", "COMMENT", post.getId());
 		}
 		return saved;
 	}
@@ -72,10 +69,8 @@ public class CommentService {
 		Comment saved = commentRepository.save(reply);
 		// NOTIFICATION (reply vào comment của người khác)
 		if (!parent.getUser().getId().equals(user.getId())) {
-			Notification n = Notification.builder().sender(user).receiver(parent.getUser()).post(parent.getPost())
-					.type("COMMENT").content(user.getName() + " đã trả lời bình luận của bạn").build();
-
-			notificationRepository.save(n);
+			notificationService.createNotification(user.getId(), parent.getUser().getId(),
+					user.getName() + " đã trả lời bình luận của bạn", "COMMENT", parent.getPost().getId());
 		}
 		return saved;
 	}

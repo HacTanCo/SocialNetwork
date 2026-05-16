@@ -16,11 +16,10 @@
 
 <body>
 	<!-- Chat container -->
-	<div id="chatContainer"
-	     style="position:fixed; bottom:0; right:20px; display:flex; gap:10px; z-index:9999;">
+	<div id="chatContainer" style="position:fixed; bottom:0; right:20px; display:flex; gap:10px; z-index:9999;">
 	</div>
 	<div id="imagePreviewModal" class="img-modal" onclick="closeImagePreview()">
-	    <img id="previewImg">
+		<img id="previewImg">
 	</div>
 	<!-- Sidebar Left -->
 	<div th:replace="~{layout/sidebar-left :: mobile-sidebar}"></div>
@@ -56,19 +55,18 @@
 						Bạn chưa có bạn bè nào.
 					</p>
 					<div th:each="u : ${friends}" class="col-md-6">
-					    <div class="border rounded p-3 d-flex justify-content-between bg-white">
+						<div class="border rounded p-3 d-flex justify-content-between bg-white">
 
-					        <a th:href="@{/profile/{id}(id=${u.id})}" 
-					           class="d-flex text-decoration-none text-dark">
-					            <img th:src="${u.avatar}" class="rounded-circle me-3" width="48" height="48">
-					            <div>
-					                <div class="fw-bold" th:text="${u.name}"></div>
-					                <small class="text-muted">Bạn bè</small>
-					            </div>
-					        </a>
+							<a th:href="@{/profile/{id}(id=${u.id})}" class="d-flex text-decoration-none text-dark">
+								<img th:src="${u.avatar}" class="rounded-circle me-3" width="48" height="48">
+								<div>
+									<div class="fw-bold" th:text="${u.name}"></div>
+									<small class="text-muted">Bạn bè</small>
+								</div>
+							</a>
 
-					        <div class="d-flex gap-2">
-					            <!-- Nút CHAT -->
+							<div class="d-flex gap-2">
+								<!-- Nút CHAT -->
 								<!--<button class="btn btn-outline-primary btn-sm"
 										style="width:31.6px; height:30.6px;"
 								        data-bs-toggle="modal"
@@ -78,82 +76,77 @@
 								    <i class="bi bi-chat-dots"></i>
 								</button>-->
 								<button class="btn btn-outline-primary btn-sm position-relative"
-										style="width:31.6px; height:30.6px;"
-								        th:attr="data-id=${u.id}, data-name=${u.name}, data-avatar=${u.avatar}"
-								        onclick="openChatBox(this)">
-								    <i class="bi bi-chat-dots"></i>
+									style="width:31.6px; height:30.6px;"
+									th:attr="data-id=${u.id}, data-name=${u.name}, data-avatar=${u.avatar}"
+									onclick="openChatBox(this)">
+									<i class="bi bi-chat-dots"></i>
 									<!-- Nút đếm số tin nhắn chưa đọc -->
-									<span class="chat-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-									      th:id="'badge-' + ${u.id}"
-									      style="display:none;">
-									    0
+									<span
+										class="chat-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+										th:id="'badge-' + ${u.id}" style="display:none;">
+										0
 									</span>
 								</button>
-								
 
-					            <!-- Xóa bạn -->
-					            <form method="post" th:action="@{/friend/remove}">
-					                <input type="hidden" name="friend_id" th:value="${u.id}">
-					                <button class="btn btn-outline-danger btn-sm" style="width:31.6px; height:30.6px;">
-					                    <i class="bi bi-person-x"></i>
-					                </button>
-					            </form>
-					        </div>
 
-					    </div>
+								<!-- Xóa bạn -->
+								<form method="post" th:action="@{/friend/remove}">
+									<input type="hidden" name="friend_id" th:value="${u.id}">
+									<button class="btn btn-outline-danger btn-sm" style="width:31.6px; height:30.6px;">
+										<i class="bi bi-person-x"></i>
+									</button>
+								</form>
+							</div>
+
+						</div>
 					</div>
 				</div>
 
 				<!-- PAGINATION FRIEND -->
 				<div class="d-flex justify-content-center mt-4" th:if="${friendPage.totalPages > 1}">
-				    <ul class="pagination">
+					<ul class="pagination">
 
-				        <!-- PREV -->
-				        <li class="page-item" th:classappend="${friendPage.first} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- PREV -->
+						<li class="page-item" th:classappend="${friendPage.first} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number - 1},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
 				               )}">
-				                ‹
-				            </a>
-				        </li>
+								‹
+							</a>
+						</li>
 
-				        <!-- NUMBER -->
-				        <li class="page-item"
-				            th:each="i : ${#numbers.sequence(0, friendPage.totalPages - 1)}"
-				            th:classappend="${i == friendPage.number} ? 'active'">
+						<!-- NUMBER -->
+						<li class="page-item" th:each="i : ${#numbers.sequence(0, friendPage.totalPages - 1)}"
+							th:classappend="${i == friendPage.number} ? 'active'">
 
-				            <a class="page-link"
-				               th:href="@{/friend(
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${i},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
-				               )}"
-				               th:text="${i + 1}">
-				            </a>
-				        </li>
+				               )}" th:text="${i + 1}">
+							</a>
+						</li>
 
-				        <!-- NEXT -->
-				        <li class="page-item" th:classappend="${friendPage.last} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- NEXT -->
+						<li class="page-item" th:classappend="${friendPage.last} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number + 1},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
 				               )}">
-				                ›
-				            </a>
-				        </li>
+								›
+							</a>
+						</li>
 
-				    </ul>
+					</ul>
 				</div>
 			</div>
 
@@ -186,54 +179,49 @@
 
 				<!-- PAGINATION SUGGEST -->
 				<div class="d-flex justify-content-center mt-3" th:if="${suggestPage.totalPages > 1}">
-				    <ul class="pagination">
+					<ul class="pagination">
 
-				        <!-- PREV -->
-				        <li class="page-item" th:classappend="${suggestPage.first} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- PREV -->
+						<li class="page-item" th:classappend="${suggestPage.first} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number - 1},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
 				               )}">
-				                ‹
-				            </a>
-				        </li>
+								‹
+							</a>
+						</li>
 
-				        <!-- NUMBER -->
-				        <li class="page-item"
-				            th:each="i : ${#numbers.sequence(0, suggestPage.totalPages - 1)}"
-				            th:classappend="${i == suggestPage.number} ? 'active'">
+						<!-- NUMBER -->
+						<li class="page-item" th:each="i : ${#numbers.sequence(0, suggestPage.totalPages - 1)}"
+							th:classappend="${i == suggestPage.number} ? 'active'">
 
-				            <a class="page-link"
-				               th:href="@{/friend(
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${i},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
-				               )}"
-				               th:text="${i + 1}">
-				            </a>
-				        </li>
+				               )}" th:text="${i + 1}">
+							</a>
+						</li>
 
-				        <!-- NEXT -->
-				        <li class="page-item" th:classappend="${suggestPage.last} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- NEXT -->
+						<li class="page-item" th:classappend="${suggestPage.last} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number + 1},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
 				               )}">
-				                ›
-				            </a>
-				        </li>
+								›
+							</a>
+						</li>
 
-				    </ul>
+					</ul>
 				</div>
 			</div>
 
@@ -287,57 +275,51 @@
 				</div>
 
 				<!-- PAGINATION -->
-				<div class="d-flex justify-content-center mt-3"
-				     th:if="${sentPage != null and sentPage.totalPages > 1}">
+				<div class="d-flex justify-content-center mt-3" th:if="${sentPage != null and sentPage.totalPages > 1}">
 
-				    <ul class="pagination">
+					<ul class="pagination">
 
-				        <!-- PREV -->
-				        <li class="page-item" th:classappend="${sentPage.first} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- PREV -->
+						<li class="page-item" th:classappend="${sentPage.first} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number - 1},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
 				               )}">
-				                ‹
-				            </a>
-				        </li>
+								‹
+							</a>
+						</li>
 
-				        <!-- NUMBER -->
-				        <li class="page-item"
-				            th:each="i : ${#numbers.sequence(0, sentPage.totalPages - 1)}"
-				            th:classappend="${i == sentPage.number} ? 'active'">
+						<!-- NUMBER -->
+						<li class="page-item" th:each="i : ${#numbers.sequence(0, sentPage.totalPages - 1)}"
+							th:classappend="${i == sentPage.number} ? 'active'">
 
-				            <a class="page-link"
-				               th:href="@{/friend(
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${i},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
-				               )}"
-				               th:text="${i + 1}">
-				            </a>
-				        </li>
+				               )}" th:text="${i + 1}">
+							</a>
+						</li>
 
-				        <!-- NEXT -->
-				        <li class="page-item" th:classappend="${sentPage.last} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- NEXT -->
+						<li class="page-item" th:classappend="${sentPage.last} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number + 1},
 				                    pendingPage=${pendingPage.number},
 				                    keyword=${param.keyword}
 				               )}">
-				                ›
-				            </a>
-				        </li>
+								›
+							</a>
+						</li>
 
-				    </ul>
+					</ul>
 				</div>
 			</div>
 
@@ -401,56 +383,51 @@
 
 				<!-- PAGINATION -->
 				<div class="d-flex justify-content-center mt-3"
-				     th:if="${pendingPage != null and pendingPage.totalPages > 1}">
+					th:if="${pendingPage != null and pendingPage.totalPages > 1}">
 
-				    <ul class="pagination">
+					<ul class="pagination">
 
-				        <!-- PREV -->
-				        <li class="page-item" th:classappend="${pendingPage.first} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- PREV -->
+						<li class="page-item" th:classappend="${pendingPage.first} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number - 1},
 				                    keyword=${param.keyword}
 				               )}">
-				                ‹
-				            </a>
-				        </li>
+								‹
+							</a>
+						</li>
 
-				        <!-- NUMBER -->
-				        <li class="page-item"
-				            th:each="i : ${#numbers.sequence(0, pendingPage.totalPages - 1)}"
-				            th:classappend="${i == pendingPage.number} ? 'active'">
+						<!-- NUMBER -->
+						<li class="page-item" th:each="i : ${#numbers.sequence(0, pendingPage.totalPages - 1)}"
+							th:classappend="${i == pendingPage.number} ? 'active'">
 
-				            <a class="page-link"
-				               th:href="@{/friend(
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${i},
 				                    keyword=${param.keyword}
-				               )}"
-				               th:text="${i + 1}">
-				            </a>
-				        </li>
+				               )}" th:text="${i + 1}">
+							</a>
+						</li>
 
-				        <!-- NEXT -->
-				        <li class="page-item" th:classappend="${pendingPage.last} ? 'disabled'">
-				            <a class="page-link"
-				               th:href="@{/friend(
+						<!-- NEXT -->
+						<li class="page-item" th:classappend="${pendingPage.last} ? 'disabled'">
+							<a class="page-link" th:href="@{/friend(
 				                    friendPage=${friendPage.number},
 				                    suggestPage=${suggestPage.number},
 				                    sentPage=${sentPage.number},
 				                    pendingPage=${pendingPage.number + 1},
 				                    keyword=${param.keyword}
 				               )}">
-				                ›
-				            </a>
-				        </li>
+								›
+							</a>
+						</li>
 
-				    </ul>
+					</ul>
 				</div>
 			</div>
 
@@ -459,63 +436,63 @@
 
 
 	<!-- Create Post Modal -->
-		<div class="modal fade" id="createPostModal" tabindex="-1">
-			<div class="modal-dialog modal-dialog-centered">
-				<div class="modal-content">
+	<div class="modal fade" id="createPostModal" tabindex="-1">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
 
-					<div class="modal-header">
-						<h5 class="modal-title">Tạo bài viết</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				<div class="modal-header">
+					<h5 class="modal-title">Tạo bài viết</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<form th:action="@{/post/create}" method="post" enctype="multipart/form-data">
+
+					<div class="modal-body">
+
+						<!-- Content -->
+						<div class="mb-3">
+							<textarea name="content" class="form-control" rows="4"
+								placeholder="Bạn đang nghĩ gì?"></textarea>
+						</div>
+
+						<!-- Upload media -->
+						<div class="mb-3">
+							<input type="file" name="files" class="form-control" accept="image/*,video/*" multiple
+								onchange="previewMedia(this)">
+						</div>
+
+						<!-- Preview này quá dài khi upload nhiều image/video-->
+						<!--<div id="mediaPreview" class="text-center"></div>-->
+						<!--Preview slider -->
+						<div id="mediaPreview" class="carousel slide" data-bs-ride="false" style="display:none;">
+
+							<div class="carousel-inner" id="carouselInner"></div>
+							<!-- Counter -->
+							<div id="mediaCounter" class="media-counter"></div>
+
+							<button class="carousel-control-prev" type="button" data-bs-target="#mediaPreview"
+								data-bs-slide="prev">
+								<span class="carousel-control-prev-icon"></span>
+							</button>
+
+							<button class="carousel-control-next" type="button" data-bs-target="#mediaPreview"
+								data-bs-slide="next">
+								<span class="carousel-control-next-icon"></span>
+							</button>
+
+						</div>
 					</div>
 
-					<form th:action="@{/post/create}" method="post" enctype="multipart/form-data">
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+						<button type="submit" class="btn btn-primary">Đăng</button>
+					</div>
 
-						<div class="modal-body">
+				</form>
 
-							<!-- Content -->
-							<div class="mb-3">
-								<textarea name="content" class="form-control" rows="4"
-									placeholder="Bạn đang nghĩ gì?"></textarea>
-							</div>
-
-							<!-- Upload media -->
-							<div class="mb-3">
-								<input type="file" name="files" class="form-control" accept="image/*,video/*" multiple
-									onchange="previewMedia(this)">
-							</div>
-
-							<!-- Preview này quá dài khi upload nhiều image/video-->
-							<!--<div id="mediaPreview" class="text-center"></div>-->
-							<!--Preview slider -->
-							<div id="mediaPreview" class="carousel slide" data-bs-ride="false" style="display:none;">
-
-								<div class="carousel-inner" id="carouselInner"></div>
-								<!-- Counter -->
-								<div id="mediaCounter" class="media-counter"></div>
-
-								<button class="carousel-control-prev" type="button" data-bs-target="#mediaPreview"
-									data-bs-slide="prev">
-									<span class="carousel-control-prev-icon"></span>
-								</button>
-
-								<button class="carousel-control-next" type="button" data-bs-target="#mediaPreview"
-									data-bs-slide="next">
-									<span class="carousel-control-next-icon"></span>
-								</button>
-
-							</div>
-						</div>
-
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-							<button type="submit" class="btn btn-primary">Đăng</button>
-						</div>
-
-					</form>
-
-				</div>
 			</div>
 		</div>
+	</div>
 
 	<!-- Modal đổi mật khẩu -->
 	<div class="modal fade" id="changePasswordModal">
@@ -605,22 +582,22 @@
 		</div>
 	</div>
 	<!--Modal notification-->
-		<div class="modal fade" id="notificationModal">
-		  <div class="modal-dialog modal-dialog-scrollable">
-		    <div class="modal-content">
+	<div class="modal fade" id="notificationModal">
+		<div class="modal-dialog modal-dialog-scrollable">
+			<div class="modal-content">
 
-		      <div class="modal-header">
-		        <h5>Thông báo</h5>
-		        <button class="btn-close" data-bs-dismiss="modal"></button>
-		      </div>
+				<div class="modal-header">
+					<h5>Thông báo</h5>
+					<button class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
 
-		      <div class="modal-body" id="notificationList">
-		        <!-- render bằng JS -->
-		      </div>
+				<div class="modal-body" id="notificationList">
+					<!-- render bằng JS -->
+				</div>
 
-		    </div>
-		  </div>
+			</div>
 		</div>
+	</div>
 
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -628,16 +605,16 @@
 	<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 
 
-	 <script th:src="@{/assets/js/toggleChangePassword.js}"></script>
+	<script th:src="@{/assets/js/toggleChangePassword.js}"></script>
 	<script th:src="@{/assets/js/changePassword.js}"></script>
 	<script th:src="@{/assets/js/chat.js}"></script>
 	<script th:src="@{/assets/js/previewImage.js}"></script>
 	<script th:src="@{/assets/js/notification.js}"></script>
-	<!-- <script th:src="@{/assets/js/ai-chat.js}"></script>-->
+	<script th:src="@{/assets/js/aiChat.js}"></script>
 	<script>
-	    window.currentUserId = "[[${session.USER.id}]]";
+		window.currentUserId = "[[${session.USER.id}]]";
 		window.currentUserName = "[[${session.USER.name}]]";
-		   connectWS(); 
+		connectWS();
 		loadUnreadCount();
 		loadUnreadMessageCount();
 		initUnreadMessage(); 
@@ -650,20 +627,20 @@
 	    z-index:99999;
 	">
 
-	    <video id="localVideo" autoplay muted style="
+		<video id="localVideo" autoplay muted style="
 	        position:absolute;
 	        bottom:20px;
 	        right:20px;
 	        width:200px;
 	    "></video>
 
-	    <video id="remoteVideo" autoplay style="
+		<video id="remoteVideo" autoplay style="
 	        width:100%;
 	        height:100%;
 	        object-fit:cover;
 	    "></video>
 
-	    <button onclick="endCall()" style="
+		<button onclick="endCall()" style="
 	        position:absolute;
 	        bottom:30px;
 	        left:50%;
@@ -674,8 +651,8 @@
 	        border:none;
 	        border-radius:10px;
 	    ">
-	        End
-	    </button>
+			End
+		</button>
 	</div>
 </body>
 

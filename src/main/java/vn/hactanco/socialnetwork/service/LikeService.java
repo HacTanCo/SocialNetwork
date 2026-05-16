@@ -8,14 +8,13 @@ import vn.hactanco.socialnetwork.model.Notification;
 import vn.hactanco.socialnetwork.model.Post;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.LikeRepository;
-import vn.hactanco.socialnetwork.repository.NotificationRepository;
 
 @Service
 @RequiredArgsConstructor
 public class LikeService {
 
 	private final LikeRepository likeRepository;
-	private final NotificationRepository notificationRepository;
+	private final NotificationService notificationService;
 
 	public boolean toggleLike(User user, Post post) {
 		return likeRepository.findByUserAndPost(user, post).map(like -> {
@@ -29,10 +28,8 @@ public class LikeService {
 
 			// TẠO NOTIFICATION
 			if (!post.getUser().getId().equals(user.getId())) {
-				Notification n = Notification.builder().sender(user).receiver(post.getUser()).post(post).type("LIKE")
-						.content(user.getName() + " đã thích bài viết của bạn").build();
-
-				notificationRepository.save(n);
+				notificationService.createNotification(user.getId(), post.getUser().getId(),
+						user.getName() + " đã thích bài viết của bạn", "LIKE", post.getId());
 			}
 			return true;
 		});

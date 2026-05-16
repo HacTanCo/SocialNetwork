@@ -110,7 +110,7 @@ function(message) {
 
 # Profile
  ## View profile with id
- ## View profile when we hover at avatar ("/api/user/{id}")
+ ##    when we hover at avatar ("/api/user/{id}")
  - const rect = target.getBoundingClientRect(); Lấy vị trí của element được click/hover
  - target = element bạn vừa click (avatar, username...)
  - getBoundingClientRect() trả về vị trí của nó trên màn hình
@@ -171,3 +171,9 @@ onconnectionstatechange theo dõi trạng thái P2P. Nếu disconnected hoặc f
 Bấm nút End → endCall(): đóng peerConnection, dừng tất cả track của localStream, ẩn callModal. Nếu có currentCallRemoteId thì gửi thêm type: "end" để bên kia cũng tự đóng.
 
 pendingCandidates[] là buffer quan trọng — ICE candidates có thể đến trước khi remoteDescription được set, nên phải lưu tạm và add sau khi setRemoteDescription() hoàn thành.
+
+
+
+
+- SDP (Session Description Protocol) → mô tả khả năng kết nối
+- ICE (Interactive Connectivity Establishment) → tìm đường kết nối tốt nhất

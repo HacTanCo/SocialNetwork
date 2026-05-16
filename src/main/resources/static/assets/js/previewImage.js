@@ -18,10 +18,53 @@ console.log("preview image")
 }*/
 let selectedFiles = [];
 
+function showToastError(message) {
+    let toastContainer = document.querySelector(".toast-container");
+    if (!toastContainer) {
+        toastContainer = document.createElement("div");
+        toastContainer.className = "toast-container position-fixed top-0 end-0 p-3";
+        document.body.appendChild(toastContainer);
+    }
+
+    const toastDiv = document.createElement("div");
+    toastDiv.className = "toast text-bg-danger border-0";
+    toastDiv.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toastDiv);
+    const toast = new bootstrap.Toast(toastDiv, { delay: 3000 });
+    toast.show();
+
+    toastDiv.addEventListener('hidden.bs.toast', () => {
+        toastDiv.remove();
+    });
+}
+
 function previewMedia(input){
+    const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+    const validFiles = [];
+    let hasOversizedFile = false;
 
-    selectedFiles = Array.from(input.files);
+    Array.from(input.files).forEach(file => {
+        if (file.size > MAX_SIZE) {
+            hasOversizedFile = true;
+        } else {
+            validFiles.push(file);
+        }
+    });
 
+    if (hasOversizedFile) {
+        showToastError("Có file vượt quá giới hạn 50MB nên đã bị loại bỏ. Vui lòng chọn file nhỏ hơn!");
+    }
+
+    selectedFiles = validFiles;
+    updateInputFiles(); // Cập nhật lại thẻ input để bỏ file lỗi
     renderPreview();
 }
 

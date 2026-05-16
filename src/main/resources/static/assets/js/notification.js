@@ -117,6 +117,7 @@ function loadUnreadCount() {
                 badge.innerText = count;
             } else {
                 badge.style.display = "none";
+                badge.innerText = "0";
             }
         });
 }
@@ -137,3 +138,77 @@ function loadUnreadMessageCount() {
         })
         .catch(err => console.error("Lỗi load unread message count:", err));
 }
+
+// --- WebSocket Realtime Notification ---
+let notificationStompClient = null;
+
+function connectNotificationWS() {
+    // currentUserId được set ở cuối body trong thẻ script inline
+    if (typeof window.currentUserId === 'undefined' || !window.currentUserId) {
+        console.warn("currentUserId not found, skipping notification WS connection.");
+        return;
+    }
+    
+    const socket = new SockJS('/ws');
+    notificationStompClient = Stomp.over(socket);
+    
+    notificationStompClient.debug = null; // Tắt log ping pong liên tục
+
+    notificationStompClient.connect({}, function(frame) {
+        console.log('Connected to Notification WS: ' + frame);
+        notificationStompClient.subscribe('/topic/notifications/' + window.currentUserId, function(message) {
+            const notification = JSON.parse(message.body);
+            handleNewNotificationRealtime(notification);
+        });
+    }, function(error) {
+        console.error("Notification WS Error: ", error);
+        setTimeout(connectNotificationWS, 5000);
+    });
+}
+
+function handleNewNotificationRealtime(n) {
+    console.log("New realtime notification received:", n);
+    
+    // Tăng số đếm badge
+    const badge = document.getElementById("notification-unread-badge");
+    if(badge) {
+        let text = badge.innerText ? badge.innerText.trim() : "";
+        let count = parseInt(text || "0");
+        count++;
+        badge.style.display = "inline-block";
+        badge.innerText = count;
+    }
+
+    // Nếu modal đang mở, thêm ngay lên đầu danh sách
+    const modalEl = document.getElementById('notificationModal');
+    if (modalEl && modalEl.classList.contains('show')) {
+        const container = document.getElementById("notificationList");
+        if(container) {
+            const item = document.createElement("div");
+            const avatar = n.senderAvatar || "/images/default-avatar.png";
+
+            item.className = `d-flex align-items-center p-3 border-bottom notification-item unread`;
+            item.style.cursor = "pointer";
+
+            item.innerHTML = `
+                <div class="position-relative me-3">
+                    <img src="${avatar}" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
+                </div>
+                <div style="flex:1;">
+                    <div class="fw-bold" style="font-size:15px; line-height:1.45;">
+                        ${n.content}
+                    </div>
+                    <div style="font-size:13px; color:#8e8e8e; margin-top:2px;">
+                        ${new Date(n.createdAt).toLocaleString('vi-VN')}
+                    </div>
+                </div>
+                <div class="unread-dot"></div>
+            `;
+
+            item.onclick = () => handleNotificationClick(n);
+            container.insertBefore(item, container.firstChild);
+        }
+    }
+}
+
+window.addEventListener("load", connectNotificationWS);

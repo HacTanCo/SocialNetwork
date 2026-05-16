@@ -13,8 +13,8 @@ public class GlobalExceptionHandler {
 	}
 
 	// fallback (tránh lộ stacktrace)
-	@ExceptionHandler(Exception.class)
-	public ResponseEntity<String> handleOther(Exception ex) {
-		return ResponseEntity.status(500).body("Đã xảy ra lỗi hệ thống");
-	}
+	// @ExceptionHandler(Exception.class)
+	// public ResponseEntity<String> handleOther(Exception ex) {
+	// 	return ResponseEntity.status(500).body("Đã xảy ra lỗi hệ thống");
+	// }
 }

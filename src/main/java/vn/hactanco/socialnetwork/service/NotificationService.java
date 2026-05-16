@@ -2,19 +2,24 @@ package vn.hactanco.socialnetwork.service;
 
 import java.util.List;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import vn.hactanco.socialnetwork.dto.NotificationDTO;
 import vn.hactanco.socialnetwork.model.Notification;
+import vn.hactanco.socialnetwork.model.Post;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.repository.NotificationRepository;
+import vn.hactanco.socialnetwork.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
 	private final NotificationRepository notificationRepository;
+	private final UserRepository userRepository;
+	private final SimpMessagingTemplate messagingTemplate;
 
 	public List<NotificationDTO> getByUser(Long userId) {
 		return notificationRepository.findByReceiverIdOrderByCreatedAtDesc(userId).stream()
@@ -26,10 +31,33 @@ public class NotificationService {
 	}
 
 	public void createNotification(Long senderId, Long receiverId, String content, String type, Long postId) {
+		Post post = null;
+		if (postId != null) {
+			post = new Post();
+			post.setId(postId);
+		}
+		
 		Notification n = Notification.builder().content(content).type(type).sender(new User(senderId))
-				.receiver(new User(receiverId)).post(null).build();
+				.receiver(new User(receiverId)).post(post).build();
 
-		notificationRepository.save(n);
+		Notification savedNotification = notificationRepository.save(n);
+		
+		User sender = userRepository.findById(senderId).orElse(null);
+		String senderName = sender != null ? sender.getName() : "";
+		String senderAvatar = sender != null ? sender.getAvatar() : "";
+
+		NotificationDTO dto = NotificationDTO.builder()
+				.id(savedNotification.getId())
+				.content(savedNotification.getContent())
+				.isRead(savedNotification.isRead())
+				.createdAt(savedNotification.getCreatedAt())
+				.senderName(senderName)
+				.senderAvatar(senderAvatar)
+				.postId(postId)
+				.type(type)
+				.build();
+
+		messagingTemplate.convertAndSend("/topic/notifications/" + receiverId, dto);
 	}
 
 	public long countUnread(Long userId) {
