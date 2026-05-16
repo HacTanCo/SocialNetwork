@@ -95,8 +95,9 @@ function scrollToBottom() {
 }
 
 // ================= LOAD KHI MỞ MODAL =================
-document.getElementById("aiChatModal")
-    .addEventListener("shown.bs.modal", function() {
+const aiChatModalEl = document.getElementById("aiChatModal");
+if (aiChatModalEl) {
+    aiChatModalEl.addEventListener("shown.bs.modal", function() {
         loadAIHistory();
 
         // delay nhẹ để chắc chắn DOM render xong
@@ -104,3 +105,4 @@ document.getElementById("aiChatModal")
             scrollToBottom();
         }, 50);
     });
+}
