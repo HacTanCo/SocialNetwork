@@ -5,6 +5,16 @@ let localStream = null;
 let peerConnection = null;
 let pendingCandidates = [];
 let currentCallRemoteId = null;
+
+// ===== Recording state =====
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let recordingTimerInterval = null;
+let recordingSeconds = 0;
+let recordingBlob = null;
+const MAX_RECORDING_SECONDS = 5 * 60; // 5 phút
+
 const config = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" }
@@ -15,10 +25,10 @@ function connectWS() {
     const socket = new SockJS('/ws');
     chatStompClient = Stomp.over(socket);
 
-    chatStompClient.connect({}, function() {
-        chatStompClient.subscribe('/topic/call/' + currentUserId, async function(msg) {
+    chatStompClient.connect({}, function () {
+        chatStompClient.subscribe('/topic/call/' + currentUserId, async function (msg) {
             const data = JSON.parse(msg.body);
-            
+
             console.log("Received call msg:", data.type, "from:", data.from, "to:", data.to, "me:", currentUserId);
             if (data.type === "offer") {
 
@@ -61,15 +71,36 @@ function connectWS() {
                 alert("Cuộc gọi bị từ chối");
                 endCall();
             }
-			if (data.type === "cancel") {
-			    if (data.to != currentUserId) return;
-			    // Đóng modal incoming call nếu đang hiện
-			    const modal = document.getElementById("incomingCallModal");
-			    if (modal) modal.remove();
-			}
+            if (data.type === "cancel") {
+                if (data.to != currentUserId) return;
+                // Đóng modal incoming call nếu đang hiện
+                const modal = document.getElementById("incomingCallModal");
+                if (modal) modal.remove();
+            }
+            if (data.type === "hangup") {
+                if (data.to != currentUserId) return;
+                // Bên kia đã kết thúc cuộc gọi → đóng ở phía mình
+                endCall(false); // false = không gửi lại hangup (tránh vòng lặp)
+            }
+            if (data.type === "recording_started") {
+                if (data.to != currentUserId) return;
+                // Bên kia bắt đầu ghi → vô hiệu hoá nút ghi của mình + hiển thị banner
+                const btn = document.getElementById('btnRecord');
+                if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
+                const banner = document.getElementById('recordingBanner');
+                if (banner) banner.style.display = 'block';
+            }
+            if (data.type === "recording_stopped") {
+                if (data.to != currentUserId) return;
+                // Bên kia dừng ghi → mở lại nút + ẩn banner
+                const btn = document.getElementById('btnRecord');
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                const banner = document.getElementById('recordingBanner');
+                if (banner) banner.style.display = 'none';
+            }
         });
 
-        chatStompClient.subscribe('/topic/chat/' + currentUserId, function(msg) {
+        chatStompClient.subscribe('/topic/chat/' + currentUserId, function (msg) {
 
             const message = JSON.parse(msg.body);
             //  HANDLE DELETE
@@ -297,7 +328,7 @@ function openChatBox(btn) {
 
 
 async function startVideoCall(friendId) {
-	console.log("currentUserName =", currentUserName);
+    console.log("currentUserName =", currentUserName);
     currentCallRemoteId = friendId; // Lưu ID người nhận
     pendingCandidates = []; // Reset danh sách ICE candidate chờ
     // Bước 1: Lấy camera + mic của người gọi
@@ -332,22 +363,22 @@ async function startVideoCall(friendId) {
     chatStompClient.send("/app/call", {}, JSON.stringify({
         type: "offer",
         from: currentUserId,
-		fromName: currentUserName,
+        fromName: currentUserName,
         to: friendId,
         data: JSON.stringify(offer)
     }));
-	window.callTimeout = setTimeout(() => {
-	    if (peerConnection && !peerConnection.remoteDescription) {
-	        // Gửi cancel cho bên nhận
-	        chatStompClient.send("/app/call", {}, JSON.stringify({
-	            type: "cancel",
-	            from: currentUserId,
-	            to: friendId  // ✅ cần lưu friendId
-	        }));
-	        alert("Không có phản hồi từ người nhận");
-	        endCall();
-	    }
-	}, 5000);
+    window.callTimeout = setTimeout(() => {
+        if (peerConnection && !peerConnection.remoteDescription) {
+            // Gửi cancel cho bên nhận
+            chatStompClient.send("/app/call", {}, JSON.stringify({
+                type: "cancel",
+                from: currentUserId,
+                to: friendId  // ✅ cần lưu friendId
+            }));
+            alert("Không có phản hồi từ người nhận");
+            endCall();
+        }
+    }, 5000);
 }
 async function handleIncomingCall(data) {
     console.log("Incoming call from:", data.from);
@@ -423,6 +454,7 @@ function showIncomingCallModal(data) {
 // Tách logic accept ra riêng
 async function acceptCall(data) {
     pendingCandidates = [];
+    currentCallRemoteId = data.from; // Lưu ID người gọi để gửi hangup sau này
 
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     showCallUI(localStream);
@@ -467,19 +499,256 @@ function showCallUI(stream) {
     document.getElementById("callModal").style.display = "block";
     document.getElementById("localVideo").srcObject = stream;
 }
-function endCall() {
+function endCall(sendSignal = true) {
+    // Nếu đang ghi → dừng ghi trước (sẽ tự upload sau)
+    if (isRecording) {
+        stopRecording(true); // true = called from endCall
+    }
+
+    // Gửi tín hiệu hangup cho bên kia nếu còn kết nối
+    if (sendSignal && currentCallRemoteId && chatStompClient && chatStompClient.connected) {
+        chatStompClient.send("/app/call", {}, JSON.stringify({
+            type: "hangup",
+            from: currentUserId,
+            to: currentCallRemoteId
+        }));
+    }
+
     if (peerConnection) {
         peerConnection.close();
         peerConnection = null;
     }
 
     if (localStream) {
-        localStream.getTracks().forEach(t => t.stop()); // Tắt camera & mic
+        localStream.getTracks().forEach(t => t.stop());
         localStream = null;
     }
 
+    // Reset recording UI
+    const btnRecord = document.getElementById('btnRecord');
+    if (btnRecord) { btnRecord.disabled = false; btnRecord.style.opacity = '1'; }
+    const iconRecord = document.getElementById('iconRecord');
+    if (iconRecord) iconRecord.className = 'bi bi-record-circle';
+    const timerEl = document.getElementById('recordTimer');
+    if (timerEl) timerEl.style.display = 'none';
+    const banner = document.getElementById('recordingBanner');
+    if (banner) banner.style.display = 'none';
+
+    currentCallRemoteId = null;
     document.getElementById("callModal").style.display = "none";
 }
+
+// ======================== RECORDING ========================
+
+function toggleRecording() {
+    if (isRecording) {
+        stopRecording(false);
+    } else {
+        startRecording();
+    }
+}
+
+async function startRecording() {
+    if (!localStream) {
+        alert("Chưa có luồng video để ghi.");
+        return;
+    }
+
+    recordedChunks = [];
+    recordingSeconds = 0;
+    recordingBlob = null;
+
+    // -- Mix 2 luồng video lên canvas --
+    const canvas = document.getElementById('recordCanvas');
+    const W = 1280, H = 480;
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+
+    function drawFrame() {
+        if (!isRecording) return;
+        ctx.clearRect(0, 0, W, H);
+        // Remote (bên trái, full half)
+        if (remoteVideo.readyState >= 2) {
+            ctx.drawImage(remoteVideo, 0, 0, W / 2, H);
+        } else {
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, W / 2, H);
+        }
+        // Local (bên phải)
+        if (localVideo.readyState >= 2) {
+            ctx.drawImage(localVideo, W / 2, 0, W / 2, H);
+        } else {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(W / 2, 0, W / 2, H);
+        }
+        requestAnimationFrame(drawFrame);
+    }
+
+    // -- Mix 2 audio track --
+    const audioCtx = new AudioContext();
+    const dest = audioCtx.createMediaStreamDestination();
+
+    [localStream, document.getElementById('remoteVideo').srcObject]
+        .filter(Boolean)
+        .forEach(stream => {
+            const audioTracks = stream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                const source = audioCtx.createMediaStreamSource(new MediaStream(audioTracks));
+                source.connect(dest);
+            }
+        });
+
+    // -- Tạo combined stream (canvas video + mixed audio) --
+    const canvasStream = canvas.captureStream(30); // 30fps
+    const combinedStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...dest.stream.getAudioTracks()
+    ]);
+
+    // -- Khởi động MediaRecorder --
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+        ? 'video/webm;codecs=vp9,opus'
+        : 'video/webm';
+
+    mediaRecorder = new MediaRecorder(combinedStream, { mimeType });
+
+    mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+        recordingBlob = new Blob(recordedChunks, { type: mimeType });
+        audioCtx.close();
+        uploadRecording(recordingBlob);
+    };
+
+    mediaRecorder.start(1000); // lấy chunk mỗi 1 giây
+    isRecording = true;
+
+    drawFrame(); // bắt đầu vẽ canvas
+
+    // -- UI feedback --
+    const iconRecord = document.getElementById('iconRecord');
+    if (iconRecord) iconRecord.className = 'bi bi-stop-circle-fill';
+    document.getElementById('btnRecord').style.background = 'rgba(255,77,77,0.7)';
+
+    const timerEl = document.getElementById('recordTimer');
+    if (timerEl) timerEl.style.display = 'inline';
+
+    recordingTimerInterval = setInterval(() => {
+        recordingSeconds++;
+        const m = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+        const s = String(recordingSeconds % 60).padStart(2, '0');
+        if (timerEl) timerEl.textContent = `${m}:${s}`;
+
+        // Tự dừng sau MAX_RECORDING_SECONDS
+        if (recordingSeconds >= MAX_RECORDING_SECONDS) {
+            stopRecording(false);
+        }
+    }, 1000);
+
+    // -- Báo cho bên kia biết đang bị ghi --
+    if (currentCallRemoteId && chatStompClient && chatStompClient.connected) {
+        chatStompClient.send("/app/call", {}, JSON.stringify({
+            type: "recording_started",
+            from: currentUserId,
+            to: currentCallRemoteId
+        }));
+    }
+}
+
+function stopRecording(calledFromEndCall = false) {
+    if (!isRecording || !mediaRecorder) return;
+
+    clearInterval(recordingTimerInterval);
+    isRecording = false;
+
+    try { mediaRecorder.stop(); } catch (e) { /* ignore */ }
+
+    // -- UI feedback --
+    const iconRecord = document.getElementById('iconRecord');
+    if (iconRecord) iconRecord.className = 'bi bi-record-circle';
+    const btnRecord = document.getElementById('btnRecord');
+    if (btnRecord) btnRecord.style.background = 'rgba(255,255,255,0.15)';
+    const timerEl = document.getElementById('recordTimer');
+    if (timerEl) timerEl.style.display = 'none';
+
+    // -- Báo cho bên kia biết dừng ghi --
+    if (!calledFromEndCall && currentCallRemoteId && chatStompClient && chatStompClient.connected) {
+        chatStompClient.send("/app/call", {}, JSON.stringify({
+            type: "recording_stopped",
+            from: currentUserId,
+            to: currentCallRemoteId
+        }));
+    }
+}
+
+async function uploadRecording(blob) {
+    if (!blob || blob.size === 0 || !currentCallRemoteId) return;
+
+    const duration = recordingSeconds;
+    const receiverId = currentCallRemoteId; // snapshot trước khi reset
+
+    const token = document.querySelector('meta[name="_csrf"]').content;
+    const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+    const formData = new FormData();
+    formData.append('file', blob, 'recording.webm');
+    formData.append('receiverId', receiverId);
+    formData.append('duration', duration);
+
+    try {
+        const res = await fetch('/call/recording/upload', {
+            method: 'POST',
+            headers: { [header]: token },
+            body: formData
+        });
+        const data = await res.json();
+        if (data.url) {
+            showRecordingResult(blob, data.url);
+        }
+    } catch (err) {
+        console.error('Upload recording failed:', err);
+    }
+}
+
+function showRecordingResult(blob, serverUrl) {
+    const modal = document.getElementById('recordingResultModal');
+    const player = document.getElementById('recordingPlayer');
+    const btnDownload = document.getElementById('btnDownloadRecording');
+
+    if (!modal || !player) return;
+
+    // Dùng local blob URL để phát ngay lập tức
+    const blobUrl = URL.createObjectURL(blob);
+    player.src = blobUrl;
+    if (btnDownload) {
+        btnDownload.href = serverUrl; // Link tải từ server
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeRecordingModal() {
+    const modal = document.getElementById('recordingResultModal');
+    const player = document.getElementById('recordingPlayer');
+    if (player) {
+        player.pause();
+        if (player.src && player.src.startsWith('blob:')) {
+            URL.revokeObjectURL(player.src);
+        }
+        player.src = '';
+    }
+    if (modal) modal.style.display = 'none';
+    recordingBlob = null;
+    recordedChunks = [];
+    recordingSeconds = 0;
+}
+
 function showRemoteVideo(stream) {
     let video = document.createElement("video");
 
@@ -808,7 +1077,7 @@ function editMessage(id) {
         input.replaceWith(div);
     }
 
-    input.addEventListener("keydown", function(e) {
+    input.addEventListener("keydown", function (e) {
 
         // ENTER = save
         if (e.key === "Enter") {
@@ -833,7 +1102,7 @@ function editMessage(id) {
         }
     });
 
-    input.addEventListener("blur", function() {
+    input.addEventListener("blur", function () {
         if (!isSaving) {
             safeReplace(oldText); //  blur cũng dùng chung logic
         }

@@ -462,37 +462,152 @@
 	    display:none;
 	    position:fixed;
 	    inset:0;
-	    background:black;
+	    background:#111;
 	    z-index:99999;
+	    flex-direction:column;
 	">
-
-		<video id="localVideo" autoplay muted style="
-	        position:absolute;
-	        bottom:20px;
-	        right:20px;
-	        width:200px;
-	    "></video>
-
-		<video id="remoteVideo" autoplay style="
+		<!-- Remote video (full screen) -->
+		<video id="remoteVideo" autoplay playsinline style="
 	        width:100%;
 	        height:100%;
 	        object-fit:cover;
+	        position:absolute;
+	        inset:0;
 	    "></video>
 
-		<button onclick="endCall()" style="
+		<!-- Local video (picture-in-picture) -->
+		<video id="localVideo" autoplay muted playsinline style="
 	        position:absolute;
-	        bottom:30px;
-	        left:50%;
-	        transform:translateX(-50%);
-	        background:red;
-	        color:white;
-	        padding:10px 20px;
-	        border:none;
-	        border-radius:10px;
+	        bottom:90px;
+	        right:16px;
+	        width:160px;
+	        border-radius:12px;
+	        border:2px solid rgba(255,255,255,0.3);
+	        z-index:2;
+	    "></video>
+
+		<!-- Canvas dùng để mix 2 video (ẩn) -->
+		<canvas id="recordCanvas" style="display:none;"></canvas>
+
+		<!-- Controls bar -->
+		<div style="
+	        position:absolute;
+	        bottom:0; left:0; right:0;
+	        padding:14px 24px;
+	        background:linear-gradient(transparent, rgba(0,0,0,0.7));
+	        display:flex;
+	        align-items:center;
+	        justify-content:center;
+	        gap:16px;
+	        z-index:3;
 	    ">
-			End
-		</button>
+			<!-- Nút ghi âm -->
+			<button id="btnRecord" onclick="toggleRecording()" title="Ghi âm cuộc gọi" style="
+	            background:rgba(255,255,255,0.15);
+	            border:none;
+	            border-radius:50%;
+	            width:52px; height:52px;
+	            color:white;
+	            font-size:20px;
+	            cursor:pointer;
+	            backdrop-filter:blur(4px);
+	            transition:background 0.2s;
+	        ">
+				<i class="bi bi-record-circle" id="iconRecord"></i>
+			</button>
+
+			<!-- Timer ghi âm -->
+			<span id="recordTimer" style="
+	            color:#ff4d4d;
+	            font-size:14px;
+	            font-weight:600;
+	            min-width:48px;
+	            display:none;
+	        ">00:00</span>
+
+			<!-- Nút kết thúc cuộc gọi -->
+			<button onclick="endCall()" style="
+	            background:#e3342f;
+	            border:none;
+	            border-radius:50%;
+	            width:60px; height:60px;
+	            color:white;
+	            font-size:24px;
+	            cursor:pointer;
+	            box-shadow:0 4px 16px rgba(227,52,47,0.5);
+	        ">
+				<i class="bi bi-telephone-x-fill"></i>
+			</button>
+		</div>
+
+		<!-- Thông báo đang bị ghi âm bởi người kia -->
+		<div id="recordingBanner" style="
+	        display:none;
+	        position:absolute;
+	        top:14px; left:50%; transform:translateX(-50%);
+	        background:rgba(255,77,77,0.85);
+	        color:white;
+	        padding:6px 18px;
+	        border-radius:20px;
+	        font-size:13px;
+	        font-weight:600;
+	        z-index:4;
+	        backdrop-filter:blur(4px);
+	    ">
+			<i class="bi bi-record-circle-fill me-1"></i> Đang được ghi âm
+		</div>
 	</div>
+
+	<!-- Modal hiển thị bản ghi sau khi kết thúc cuộc gọi -->
+	<div id="recordingResultModal" style="
+	    display:none;
+	    position:fixed;
+	    inset:0;
+	    background:rgba(0,0,0,0.6);
+	    z-index:100000;
+	    align-items:center;
+	    justify-content:center;
+	">
+		<div style="
+	        background:#fff;
+	        border-radius:16px;
+	        padding:24px;
+	        max-width:480px;
+	        width:90%;
+	        box-shadow:0 20px 60px rgba(0,0,0,0.3);
+	    ">
+			<h5 style="margin:0 0 16px; font-weight:700;">
+				<i class="bi bi-camera-video-fill me-2" style="color:#667eea;"></i>Bản ghi cuộc gọi
+			</h5>
+			<video id="recordingPlayer" controls style="
+	            width:100%;
+	            border-radius:10px;
+	            background:#000;
+	            max-height:260px;
+	        "></video>
+			<div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+				<a id="btnDownloadRecording" download style="
+	                background:#667eea;
+	                color:white;
+	                padding:8px 20px;
+	                border-radius:8px;
+	                text-decoration:none;
+	                font-size:14px;
+	            ">
+					<i class="bi bi-download me-1"></i> Tải xuống
+				</a>
+				<button onclick="closeRecordingModal()" style="
+	                background:#f1f1f1;
+	                border:none;
+	                padding:8px 20px;
+	                border-radius:8px;
+	                font-size:14px;
+	                cursor:pointer;
+	            ">Đóng</button>
+			</div>
+		</div>
+	</div>
+
 </body>
 
 </html>
