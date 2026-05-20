@@ -1,5 +1,5 @@
 package vn.hactanco.socialnetwork.enums;
 
 public enum MessageType {
-	IMAGE, VIDEO, TEXT
+	IMAGE, VIDEO, TEXT, RECORDING
 }

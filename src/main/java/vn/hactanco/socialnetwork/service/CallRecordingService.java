@@ -1,5 +1,6 @@
 package vn.hactanco.socialnetwork.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,9 +31,6 @@ public class CallRecordingService {
         return callRecordingRepository.save(rec);
     }
 
-    /**
-     * Trả về DTO đơn giản để tránh vòng lặp serialize (lazy loading).
-     */
     public List<RecordingDTO> getByUser(Long userId) {
         return callRecordingRepository.findByUserId(userId)
                 .stream()
@@ -58,6 +56,6 @@ public class CallRecordingService {
         String receiverName,
         String fileUrl,
         Integer duration,
-        java.time.Instant createdAt
+        Instant createdAt
     ) {}
 }

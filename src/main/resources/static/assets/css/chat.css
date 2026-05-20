@@ -255,3 +255,92 @@
 .msg-row:hover .msg-actions {
     opacity: 1;
 }
+
+/* ==================== Recording Message Card ==================== */
+.recording-msg-card {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 14px;
+    padding: 10px 12px;
+    max-width: 260px;
+    backdrop-filter: blur(4px);
+}
+
+.chat-bubble.me .recording-msg-card {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.chat-bubble.other .recording-msg-card {
+    background: #f4f6fb;
+    border-color: #dde2ec;
+}
+
+.recording-msg-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.recording-msg-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.recording-msg-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.recording-msg-title {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.recording-msg-dur {
+    font-size: 11px;
+    opacity: 0.65;
+    font-variant-numeric: tabular-nums;
+}
+
+.recording-msg-video {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+    margin-bottom: 8px;
+    background: #000;
+}
+
+.recording-msg-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.chat-bubble.me .recording-msg-download {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.chat-bubble.me .recording-msg-download:hover {
+    background: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+.chat-bubble.other .recording-msg-download {
+    background: #e8edf7;
+    color: #0d6efd;
+}
+
+.chat-bubble.other .recording-msg-download:hover {
+    background: #d0daf5;
+}

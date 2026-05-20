@@ -28,6 +28,7 @@ public class MessageDTO {
 	private boolean isRead;
 	private boolean isDelivered;
 	private String mediaUrl;
-	private MessageType type; // TEXT | IMAGE | VIDEO
+	private MessageType type; // TEXT | IMAGE | VIDEO | RECORDING
+	private Integer duration;  // giây - chỉ dùng cho RECORDING
 	private Instant createdAt;
 }

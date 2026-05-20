@@ -19,9 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import vn.hactanco.socialnetwork.dto.MessageDTO;
+import vn.hactanco.socialnetwork.enums.MessageType;
 import vn.hactanco.socialnetwork.model.User;
 import vn.hactanco.socialnetwork.service.CallRecordingService;
 import vn.hactanco.socialnetwork.service.CallRecordingService.RecordingDTO;
+import vn.hactanco.socialnetwork.service.MessageService;
 import vn.hactanco.socialnetwork.websocket.CallMessage;
 
 @Controller
@@ -31,6 +34,7 @@ public class CallController {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final CallRecordingService callRecordingService;
+    private final MessageService messageService;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -88,6 +92,23 @@ public class CallController {
                 currentUser.getId(), receiverId,
                 fileName, fileUrl,
                 file.getSize(), duration);
+
+        // Gửi tin nhắn RECORDING vào chat cho cả 2 phía
+        MessageDTO dto = MessageDTO.builder()
+                .senderId(currentUser.getId())
+                .receiverId(receiverId)
+                .content("")
+                .mediaUrl(fileUrl)
+                .type(MessageType.RECORDING)
+                .duration(duration)
+                .build();
+
+        MessageDTO saved = messageService.save(dto);
+        messageService.markDelivered(saved.getId());
+        MessageDTO updated = messageService.getById(saved.getId());
+
+        messagingTemplate.convertAndSend("/topic/chat/" + receiverId, updated);
+        messagingTemplate.convertAndSend("/topic/chat/" + currentUser.getId(), updated);
 
         return Map.of("url", fileUrl, "fileName", fileName);
     }

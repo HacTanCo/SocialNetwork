@@ -1,6 +1,7 @@
 console.log("Chat");
 let chatStompClient = null;
 let totalUnread = 0;
+
 let localStream = null;
 let peerConnection = null;
 let pendingCandidates = [];
@@ -86,17 +87,25 @@ function connectWS() {
                 if (data.to != currentUserId) return;
                 // Bên kia bắt đầu ghi → vô hiệu hoá nút ghi của mình + hiển thị banner
                 const btn = document.getElementById('btnRecord');
-                if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
+                if (btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.4';
+                }
                 const banner = document.getElementById('recordingBanner');
-                if (banner) banner.style.display = 'block';
+                if (banner) 
+                    banner.style.display = 'block';
             }
             if (data.type === "recording_stopped") {
                 if (data.to != currentUserId) return;
                 // Bên kia dừng ghi → mở lại nút + ẩn banner
                 const btn = document.getElementById('btnRecord');
-                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                if (btn) { 
+                    btn.disabled = false; 
+                    btn.style.opacity = '1'; 
+                }
                 const banner = document.getElementById('recordingBanner');
-                if (banner) banner.style.display = 'none';
+                if (banner) 
+                    banner.style.display = 'none';
             }
         });
 
@@ -326,7 +335,7 @@ function openChatBox(btn) {
 
 }
 
-
+// 18/5 
 async function startVideoCall(friendId) {
     console.log("currentUserName =", currentUserName);
     currentCallRemoteId = friendId; // Lưu ID người nhận
@@ -349,7 +358,7 @@ async function startVideoCall(friendId) {
     peerConnection.onicecandidate = e => {
         if (e.candidate) {
             chatStompClient.send("/app/call", {}, JSON.stringify({
-                type: "ice", // ✅ đúng
+                type: "ice",
                 from: currentUserId,
                 to: friendId,
                 data: JSON.stringify(e.candidate)
@@ -373,20 +382,21 @@ async function startVideoCall(friendId) {
             chatStompClient.send("/app/call", {}, JSON.stringify({
                 type: "cancel",
                 from: currentUserId,
-                to: friendId  // ✅ cần lưu friendId
+                to: friendId 
             }));
             alert("Không có phản hồi từ người nhận");
             endCall();
         }
     }, 5000);
 }
+// 18/5 
 async function handleIncomingCall(data) {
     console.log("Incoming call from:", data.from);
 
     // Hiện modal thay vì confirm()
     showIncomingCallModal(data);
 }
-
+// 18/5 
 function showIncomingCallModal(data) {
     // Tạo modal động
     const existing = document.getElementById("incomingCallModal");
@@ -452,6 +462,7 @@ function showIncomingCallModal(data) {
 }
 
 // Tách logic accept ra riêng
+// 18/5 
 async function acceptCall(data) {
     pendingCandidates = [];
     currentCallRemoteId = data.from; // Lưu ID người gọi để gửi hangup sau này
@@ -495,10 +506,12 @@ async function acceptCall(data) {
         data: JSON.stringify(answer)
     }));
 }
+// 18/5 
 function showCallUI(stream) {
     document.getElementById("callModal").style.display = "block";
     document.getElementById("localVideo").srcObject = stream;
 }
+// 18/5 
 function endCall(sendSignal = true) {
     // Nếu đang ghi → dừng ghi trước (sẽ tự upload sau)
     if (isRecording) {
@@ -539,7 +552,7 @@ function endCall(sendSignal = true) {
 }
 
 // ======================== RECORDING ========================
-
+// 18/5 
 function toggleRecording() {
     if (isRecording) {
         stopRecording(false);
@@ -547,7 +560,7 @@ function toggleRecording() {
         startRecording();
     }
 }
-
+// 18/5 
 async function startRecording() {
     if (!localStream) {
         alert("Chưa có luồng video để ghi.");
@@ -660,7 +673,7 @@ async function startRecording() {
         }));
     }
 }
-
+// 18/5 
 function stopRecording(calledFromEndCall = false) {
     if (!isRecording || !mediaRecorder) return;
 
@@ -686,7 +699,7 @@ function stopRecording(calledFromEndCall = false) {
         }));
     }
 }
-
+// 18/5 
 async function uploadRecording(blob) {
     if (!blob || blob.size === 0 || !currentCallRemoteId) return;
 
@@ -962,6 +975,29 @@ function renderMiniMessage(m, friendId) {
 	            <source src="${m.mediaUrl}">
 	        </video>
 	    `;
+    }
+    else if (m.type === "RECORDING" && m.mediaUrl) {
+        const durSec = m.duration || 0;
+        const mm = String(Math.floor(durSec / 60)).padStart(2, '0');
+        const ss = String(durSec % 60).padStart(2, '0');
+        const durLabel = durSec > 0 ? `${mm}:${ss}` : '';
+        mediaHtml = `
+            <div class="recording-msg-card">
+                <div class="recording-msg-header">
+                    <span class="recording-msg-icon">🎬</span>
+                    <div class="recording-msg-info">
+                        <span class="recording-msg-title">Bản ghi cuộc gọi</span>
+                        ${durLabel ? `<span class="recording-msg-dur">${durLabel}</span>` : ''}
+                    </div>
+                </div>
+                <video controls class="recording-msg-video">
+                    <source src="${m.mediaUrl}" type="video/webm">
+                </video>
+                <a href="${m.mediaUrl}" download class="recording-msg-download">
+                    <i class="bi bi-download"></i> Tải xuống
+                </a>
+            </div>
+        `;
     }
     const row = document.createElement("div");
     row.className = "msg-row " + (isMe ? "me" : "");

@@ -46,6 +46,8 @@ public class Message {
 
 	private boolean isDelivered = false;
 
+	private Integer duration; // giây - chỉ dùng cho RECORDING
+
 	private Instant createdAt;
 
 	// người gửi
